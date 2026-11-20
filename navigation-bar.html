@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css">
+    <!--https://cdnjs.com/libraries/font-awesome-->
+    <style>
+        #master-navigation-bar {
+            margin: 0;
+            padding: 2vh;
+            padding-left: 1vw;
+            padding-right: 2vw;
+
+            background-color: #005C32;
+
+            border-style: solid;
+            border-width: 0 0 1rem 0;
+            border-color: #004E32;
+
+            display: flex;
+            flex-direction: row;
+
+            justify-content: space-between;
+            align-items: center;
+            gap: 2vw;
+        }
+        #master-navigation-bar * {
+            margin: 0;
+        }
+
+        #master-navigation-bar > header {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-evenly;
+        }
+        #master-navigation-bar > header > h3 {
+            font-size: 2rem;
+
+            color: #efe9d7;
+        }
+        #master-navigation-bar > header > img {
+            width: 4rem;
+            height: 4rem;
+            margin-right: 1vmax;
+        }
+
+        #master-navigation-bar > ul {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+
+            align-items: center;
+            justify-content: center;
+            gap: 3vw;
+        }
+        #master-navigation-bar li {
+            list-style: none;
+            font-weight: 600;
+
+            font-size: 1.3rem;
+            color: whitesmoke
+        }
+        #master-navigation-bar li:not(.navbar-no-hover):hover{
+            transform: scale(1.2);
+        }
+
+        #master-navigation-bar li > input {
+            font-size: 1.1rem;
+            text-indent: 0.5rem;
+            letter-spacing: 0.1rem;
+
+            border-style: hidden;
+            border-radius: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            #master-navigation-bar {
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                align-items: center;
+            }   
+        }
+    </style>
+
+    <div id="master-navigation-bar">
+        <header>
+            <img src="images/business-logo.png"/>
+            <h3>Yaad Goods</h3>
+        </header>
+        <ul id="navbar-menu">
+            <li>
+                <p>Store</p>
+            </li>
+            <li class="navbar-no-hover">
+                <input id="navbar-quicksearch" type="search" name="quick product search" placeholder="Search it!" pattern="^[A-Za-z_ ]+$"/>
+            </li>
+            <li>
+                <p>My Orders</p>
+            </li>
+            <li>
+                <p>About</p>
+            </li>
+            <li>
+                <p>Contacts</p>
+            </li>
+        </ul>
+        <ul id="navbar-config">
+            <li><i class="fas fa-shopping-cart"></i></li>
+            <li><i class="fas fa-cog"></i></i></li>
+        </ul>
+    </div>
+
+</html>

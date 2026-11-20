@@ -1,0 +1,2 @@
+# Disallow viewing all website files
+Options -Indexes
