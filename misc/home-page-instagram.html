@@ -1,0 +1,80 @@
+<html lang="en">
+    <article id="home-page-instagram">
+        <div>
+            <img width="10%" src="https://scontent.cdninstagram.com/v/t51.82787-19/707406768_17891444490500047_835812196855900408_n.jpg?stp=dst-jpg_s150x150_tt6&_nc_cat=106&ig_cache_key=GLArKirP91_JLJA-APjoiMTDZpkLbmNDAQAB1501500j-ccb7-5&ccb=7-5&_nc_sid=669407&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLnd3dy4xMDgwLkMzIn0%3D&_nc_ohc=MOgpz0-cI_sQ7kNvwFO3fdJ&_nc_oc=AdoMaEBZpg8vWGLyvZPHCeYnZRoOLMu-ojMC0bQb0cO15xMwHjyjXKUmuyMiWLBwkRM&_nc_zt=24&_nc_ht=scontent.cdninstagram.com&_nc_gid=pU3YCctN1RRXqlUB_HtJpw&_nc_ss=7b689&_nc_ct=RQosPBUCFQIAAAA&oh=00_AQQiRMLisDfa690Q4in2wWlG_ENp9U0asbxTWYgIKbp9gw&oe=6B075616">
+            <p><b>y.a.a.d_goods</b> and <b>butchers_uwi</b></p>
+        </div>
+        <a href="https://www.instagram.com/y.a.a.d_goods/" target="_blank"><img src="" width="100%"></img></a>
+        <small id="instagram-control-panel">
+            <button onclick="updateImg(-1)">Previous</button>
+            <button onclick="updateImg(1)">Next</button>
+        </small>
+    </article>
+    <style>
+        #home-page-instagram {
+            margin-bottom: 1rem;
+            width: 40vw;
+            background-color: white;
+
+            display: grid;
+            grid-template-rows: min-content min-content min-content;
+            grid-template-columns: 1fr;
+
+            box-shadow: 0em 0em 0.1em rgba(0, 0, 0, 0.1);
+        }
+        #home-page-instagram > div {
+            padding: 0.5vmax;
+            
+            display: flex;
+            flex-direction: row;
+            justify-content: start;
+            align-items: center;
+            gap: 1vmax;
+        }
+        #home-page-instagram > small {
+            padding: 0.5vmax;
+            
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+        #home-page-instagram > small > button {
+            border-radius: 0;
+            background-color: white;
+            color: black;
+            font-size: larger;
+        }
+
+        @media (max-width: 768px) {
+            #home-page-instagram {
+                width: 90vw;
+            }
+            #home-page-instagram > small > button {
+                font-size: 2em;
+            }
+        }
+    </style>
+    <script>
+        let instagram_images = [
+            "https://instagram.fmbj2-1.fna.fbcdn.net/v/t51.82787-15/642504920_17878398108500047_4543486444199351329_n.jpg?stp=dst-jpg_e35_tt6&_nc_cat=107&_nc_map=urlgen_bucketless&ig_cache_key=Mzg0MjY0MzI2NDY0MTQ0MTIyMA%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6IkNBUk9VU0VMX0lURU0ueHBpZHMuMTQ0MC5zZHIucmVndWxhcl9waG90by5DMyJ9&_nc_ohc=h8WYShUNdd8Q7kNvwGmqmxk&_nc_oc=AdqDIl5pzpteO6odvt0KQLtKEdlwvtAiK6mldcsdM2aOZxzVLD56tDdj3yXalWY6xFo&_nc_zt=23&_nc_ht=instagram.fmbj2-1.fna&_nc_gid=pU3YCctN1RRXqlUB_HtJpw&_nc_ss=7b689&_nc_ct=RQosPBUIFQIlBAAAAA&oh=00_AQTWpNBWhH1qW0vUG9MFkOygnKTT9wXYXfoTAbGM7b2O0A&oe=6B0748B3",
+            "https://instagram.fmbj2-2.fna.fbcdn.net/v/t51.82787-15/642633328_17878398117500047_1260669650537358679_n.jpg?stp=dst-jpg_e35_tt6&_nc_cat=105&_nc_map=urlgen_bucketless&ig_cache_key=Mzg0MjY0MzI2NzEyNDUxODg5MA%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6IkNBUk9VU0VMX0lURU0ueHBpZHMuMTQ0MC5zZHIucmVndWxhcl9waG90by5DMyJ9&_nc_ohc=JemgHrBCP44Q7kNvwFEQo8G&_nc_oc=AdqBX7SBZqXrOoq2igBq44O4wIu32Uj_8EAr5aGPTV4F__zHMwVzmzrL2pdBfMltVzI&_nc_zt=23&_nc_ht=instagram.fmbj2-2.fna&_nc_gid=pU3YCctN1RRXqlUB_HtJpw&_nc_ss=7b689&_nc_ct=RQosPBUIFQIlBAAAAA&oh=00_AQTsbBye3OeiUPxRrfB9k26w98VLQGQyD_wAuAtB0cwP3A&oe=6B074621",
+            "https://instagram.fmbj2-1.fna.fbcdn.net/v/t51.82787-15/639921056_17878398129500047_4141598015763771884_n.jpg?stp=dst-jpegr_e35_tt6&_nc_cat=105&_nc_map=urlgen_bucketless&ig_cache_key=Mzg0MjY0MzI3MzIyMzAwMjE2Mg%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6IkNBUk9VU0VMX0lURU0ueHBpZHMuMTQ0MC5oZHIucmVndWxhcl9waG90by5DMyJ9&_nc_ohc=UxesbVWP_8cQ7kNvwH0Doyc&_nc_oc=AdphGihGq5Od69b3qxYR_f9l5VyAz7XKO956KabO45V0xV5T29TyI8FeT4TKrK5ojAM&_nc_zt=23&se=-1&_nc_ht=instagram.fmbj2-1.fna&_nc_gid=pU3YCctN1RRXqlUB_HtJpw&_nc_ss=7b689&_nc_ct=RQosPBUIFQIlAgAAAA&oh=00_AQSu73tNf9CpjO846zn3WruEXTm92mG5IjrNl3l3ao8hFw&oe=6B07583B",
+            "https://instagram.fmbj2-1.fna.fbcdn.net/v/t51.82787-15/641771413_17878398240500047_652282584554624757_n.jpg?stp=dst-jpg_e35_tt6&_nc_cat=109&_nc_map=urlgen_bucketless&ig_cache_key=Mzg0MjY0MzMwMDk4MDkzMzgwNA%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6IkNBUk9VU0VMX0lURU0ueHBpZHMuMTQ0MC5zZHIucmVndWxhcl9waG90by5DMyJ9&_nc_ohc=l3cWIE4BLWgQ7kNvwERDsmf&_nc_oc=AdoOtiZErqqa_C6u9ExP3SZDugC-atlANwuR3VDfYr-cMxMYTqwcsz8nVgFAsBfSrtA&_nc_zt=23&_nc_ht=instagram.fmbj2-1.fna&_nc_gid=pU3YCctN1RRXqlUB_HtJpw&_nc_ss=7b689&_nc_ct=RQosPBUIFQIlBAAAAA&oh=00_AQQhOp5PiX5gbxpfQRNSjuSpfMy6EkgvLkpoy66WDbPDmQ&oe=6B0756AD",
+            "https://instagram.fmbj2-1.fna.fbcdn.net/v/t51.82787-15/639908075_17878398267500047_3460395264271862889_n.jpg?stp=dst-jpegr_e35_tt6&_nc_cat=109&_nc_map=urlgen_bucketless&ig_cache_key=Mzg0MjY0MzMyOTIzMzcxOTYzNw%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6IkNBUk9VU0VMX0lURU0ueHBpZHMuMTQ0MC5oZHIucmVndWxhcl9waG90by5DMyJ9&_nc_ohc=iJApENWiY04Q7kNvwHW9dKd&_nc_oc=AdrQIzBxCbsz9AtX3rIw6fUZv_p71DgDlJ19Lt85Ls84vXIfj40-KdqbtfMDfoB1pvM&_nc_zt=23&se=-1&_nc_ht=instagram.fmbj2-1.fna&_nc_gid=pU3YCctN1RRXqlUB_HtJpw&_nc_ss=7b689&_nc_ct=RQosPBUIFQIlAgAAAA&oh=00_AQScHzIvSrqkkAGILJk4RmYFcYc_fMJFUO-YrQo4uKuRZw&oe=6B07487D",
+            "https://instagram.fmbj2-2.fna.fbcdn.net/v/t51.82787-15/641790959_17878398258500047_7106664645638291511_n.jpg?stp=dst-jpg_e35_tt6&_nc_cat=109&_nc_map=urlgen_bucketless&ig_cache_key=Mzg0MjY0MzMyMjg4MzU4MTU2OQ%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6IkNBUk9VU0VMX0lURU0ueHBpZHMuMTQ0MC5zZHIucmVndWxhcl9waG90by5DMyJ9&_nc_ohc=3sK5yOkan_cQ7kNvwE4trlf&_nc_oc=AdpGQhKuGJAmRsNQIo3A2gJ-aQJFoYYPAsDZNlEmd59P5wLSMt3aep142tzvffloJ3A&_nc_zt=23&_nc_ht=instagram.fmbj2-2.fna&_nc_gid=pU3YCctN1RRXqlUB_HtJpw&_nc_ss=7b689&_nc_ct=RQosPBUIFQIlBAAAAA&oh=00_AQSN0RIchHOiow5OfSH7tyLOklPQFsGp_d4kJzLVYzS84g&oe=6B0763B9"
+        ];
+
+        function updateImg(next) {
+            image = document.querySelector("#home-page-instagram > a > img");
+            currentImg = instagram_images.indexOf(image.src) + next;
+            if (currentImg >= instagram_images.length) {
+                currentImg = 0
+            }
+            if (currentImg < 0) {
+                currentImg = instagram_images.length - 1
+            }
+            image.src = instagram_images[currentImg];
+        }
+        updateImg(1);
+    </script>
+</html>

@@ -1,0 +1,110 @@
+main {
+    display: flex;
+    flex-direction: column;
+}
+
+
+#tagline {
+    padding-top: 1vmax;
+    padding-bottom: 2vmax;
+    padding-left: 4vmax;
+    padding-right: 4vmax;
+    width: 70%;
+
+    margin-bottom: 2vmax;
+
+    align-self: center;
+
+    background-color: #EFEFEB;
+    color: black;
+
+    border-radius: 2rem;
+}
+#tagline > div {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+#tagline h1 {
+    padding-bottom: 2vmin;
+}
+#tagline p {
+    font-weight: 500;
+    padding-bottom: 1vmin;
+}
+
+@media (max-width: 768px) {
+    #tagline {
+        width: 80%;
+    }
+    #tagline > div {
+        flex-direction: column;
+        gap: 2vmax;
+    }
+}
+
+
+#instagram-carousel {
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+    justify-items: center;
+}
+
+
+#get-started {
+    margin-top: 1vmax;
+
+    padding-top: 4vmax;
+    padding-bottom: 1vmax;
+    padding-left: 9vw;
+    padding-right: 9vw;
+
+    background-color: #e0ebe0;
+}
+#get-started > h1 {
+    margin-bottom: 1vmax;
+}
+#get-started > p {
+    margin-bottom: 3rem;
+
+    font-size: large;
+    font-weight: 600;
+}
+#get-started > div {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 5rem;
+
+    margin-bottom: 2rem;
+}
+#get-started > div > button {
+    border-radius: 0;
+}
+#continue-blurb {
+    padding-left: 9vw;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    font-weight: 600;
+
+    gap: 1.5vw;
+}
+#continue-blurb > button {
+    font-size: 0.9em;
+}
+
+@media (max-width: 768px) {
+    #get-started {
+        padding-left: 5vw;
+        padding-right: 5vw;
+    }
+}

@@ -13,7 +13,7 @@
 
             border-style: solid;
             border-width: 0 0 1rem 0;
-            border-color: #004E32;
+            border-color: #005533;
 
             display: flex;
             flex-direction: row;
@@ -35,7 +35,7 @@
         #master-navigation-bar > header > h3 {
             font-size: 2rem;
 
-            color: #efe9d7;
+            color: whitesmoke;
         }
         #master-navigation-bar > header > img {
             width: 4rem;
@@ -60,7 +60,8 @@
             color: whitesmoke
         }
         #master-navigation-bar li:not(.navbar-no-hover):hover{
-            transform: scale(1.2);
+            transform: scale(1.15);
+            transition: transform 50ms ease-out;
         }
 
         #master-navigation-bar li > input {
@@ -82,17 +83,17 @@
         }
     </style>
 
-    <div id="master-navigation-bar">
+    <nav id="master-navigation-bar">
         <header>
-            <img src="images/business-logo.png"/>
-            <h3>Yaad Goods</h3>
+            <img src="images/business-logo.png" alt="Yaad Goods' business logo."/>
+            <h3>YAAD Goods</h3>
         </header>
         <ul id="navbar-menu">
             <li>
                 <p>Store</p>
             </li>
             <li class="navbar-no-hover">
-                <input id="navbar-quicksearch" type="search" name="quick product search" placeholder="Search it!" pattern="^[A-Za-z_ ]+$"/>
+                <input id="navbar-quicksearch" type="search" name="quick product search" placeholder="🔍︎ Search it!" pattern="^[A-Za-z_ ]+$"/>
             </li>
             <li>
                 <p>My Orders</p>
@@ -108,6 +109,5 @@
             <li><i class="fas fa-shopping-cart"></i></li>
             <li><i class="fas fa-cog"></i></i></li>
         </ul>
-    </div>
-
+    </nav>
 </html>

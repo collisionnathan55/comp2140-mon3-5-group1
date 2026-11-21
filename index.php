@@ -1,3 +1,6 @@
+<?php
+?>
+
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -11,8 +14,40 @@
 
     <body>
         <header>
-            <?php require "navigation-bar.html"?>
+            <?php require "misc/navigation-bar.html"?>
         </header>
+
+        <main>
+            <div id="tagline">
+                <h1>Fresh. Natural. Jamaican.</h1>
+                <div>
+                    <div>
+                        <p>Top quality fruits and vegetables in Jamaica🍍🍉🥬. Wholesale and retail options available.</p>
+                        <p>Visit us in person on the UWI Mona campus!</p>
+                    </div>
+                    <button>Find Us</button>
+                </div>
+            </div>
+
+            <div id="instagram-carousel">
+                <?php include "misc/home-page-instagram.html" ?>
+            </div>
+
+            <section id="get-started">
+                <h1>Ready to make an order?</h1>
+                <p>Browse our products and add them to your cart and finalize your order whenever you're ready. Find us on campus to pay and collect, or request delivery.</p>
+                <div>
+                    <button>Browse all Products</button>
+                    <button>Make an Order</button>
+                </div>
+            </section>
+            <small id="continue-blurb">
+                <p>Already have an order?</p>
+                <button>Track it here</button>
+            </small>
+        </main>
+
+        <?php require "misc/copyright.html"?>
     </body>
 
 </html>
