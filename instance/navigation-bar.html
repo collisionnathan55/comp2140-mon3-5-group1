@@ -20,10 +20,19 @@
 
             justify-content: space-between;
             align-items: center;
-            gap: 2vw;
         }
         #master-navigation-bar * {
             margin: 0;
+        }
+        #master-navigation-bar > section {
+            width: 77%;
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+
+            justify-content: space-between;
+            align-items: center;
+            gap: 2vw;
         }
 
         #master-navigation-bar > header {
@@ -37,13 +46,15 @@
 
             color: whitesmoke;
         }
-        #master-navigation-bar > header > img {
+        /* #master-navigation-bar > header > img {
             width: 4rem;
             height: 4rem;
             margin-right: 1vmax;
-        }
+        } */
 
-        #master-navigation-bar > ul {
+        #master-navigation-bar ul {
+            padding: 0;
+
             display: flex;
             flex-direction: row;
             flex-wrap: wrap;
@@ -52,19 +63,25 @@
             justify-content: center;
             gap: 3vw;
         }
-        #master-navigation-bar li {
+        #master-navigation-bar ul > li {
             list-style: none;
             font-weight: 600;
+
+            text-align: center;
 
             font-size: 1.3rem;
             color: whitesmoke
         }
-        #master-navigation-bar li:not(.navbar-no-hover):hover{
+        #master-navigation-bar ul > li:not(.navbar-no-hover):hover{
             transform: scale(1.15);
             transition: transform 50ms ease-out;
         }
+        /* #navbar-menu-icons > li > i:hover{
+            transform: scale(1.15);
+            transition: transform 50ms ease-out;
+        } */
 
-        #master-navigation-bar li > input {
+        #master-navigation-bar ul > li > input {
             font-size: 1.1rem;
             text-indent: 0.5rem;
             letter-spacing: 0.1rem;
@@ -77,9 +94,16 @@
             #master-navigation-bar {
                 display: flex;
                 flex-direction: column;
+
                 justify-content: space-between;
                 align-items: center;
-            }   
+
+                gap: 1rem;
+            }  
+            #master-navigation-bar > section {
+                width: 100%;
+                justify-content: space-evenly;
+            }
         }
     </style>
 
@@ -88,26 +112,38 @@
             <!-- <img src="images/business-logo.png" alt="Yaad Goods' business logo."/> -->
             <h3>YAAD Goods</h3>
         </header>
-        <ul id="navbar-menu">
-            <li>
-                <p>Store</p>
-            </li>
-            <li class="navbar-no-hover">
-                <input id="navbar-quicksearch" type="search" name="quick product search" placeholder="🔍︎ Search it!" pattern="^[A-Za-z_ ]+$"/>
-            </li>
-            <li>
-                <p>My Orders</p>
-            </li>
-            <li>
-                <p>About</p>
-            </li>
-            <li>
-                <p>Contacts</p>
-            </li>
-        </ul>
-        <ul id="navbar-config">
-            <li><i class="fas fa-shopping-cart"></i></li>
-            <li><i class="fas fa-cog"></i></i></li>
-        </ul>
+        <section>
+            <ul>
+                <li>
+                    <p>Store</p>
+                </li>
+                <li class="navbar-no-hover">
+                    <input id="navbar-quicksearch" type="search" name="quick product search" placeholder="🔍︎ Search it!" pattern="^[A-Za-z_ ]+$"/>
+                </li>
+                <li>
+                    <p>My Cart</p>
+                </li>
+                <li>
+                    <p>My Orders</p>
+                </li>
+            </ul>
+            <ul>
+                <li>
+                    <p>About</p>
+                </li>
+                <li>
+                    <p>Contacts</p>
+                </li>
+                <li>
+                    <p>Admin</p>
+                </li>
+            </ul>
+            <!-- <ul id="navbar-menu-icons">
+                <li><i class="fas fa-shopping-cart"></i></li>
+                <li>
+                    <i class="fas fa-cog"></i>
+                </li>
+            </ul> -->
+        </section>
     </nav>
 </html>

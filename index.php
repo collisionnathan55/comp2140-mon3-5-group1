@@ -14,7 +14,7 @@
 
     <body>
         <header>
-            <?php require "misc/navigation-bar.html"?>
+            <?php require "instance/navigation-bar.html"?>
         </header>
 
         <main>
@@ -30,7 +30,7 @@
             </div>
 
             <div id="instagram-carousel">
-                <?php include "misc/home-page-instagram.html" ?>
+                <?php include "instance/home-page-instagram.html" ?>
             </div>
 
             <section id="get-started">
@@ -47,7 +47,7 @@
             </small>
         </main>
 
-        <?php require "misc/copyright.html"?>
+        <?php require "instance/copyright.html"?>
     </body>
 
 </html>
