@@ -11,6 +11,7 @@
         <link rel="icon" href="images/business-logo.png" type="image/png">
         <link rel="stylesheet" href="master.css">
         <link rel="stylesheet" href="page-home.css">
+        <script type="text/javascript" src="navigation.js"></script>
     </head>
 
     <body>

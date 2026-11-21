@@ -2,6 +2,8 @@
 <html lang="en">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css">
     <!--https://cdnjs.com/libraries/font-awesome-->
+    <script type="text/javascript" src="navigation.js"></script>
+
     <style>
         #master-navigation-bar {
             margin: 0;
@@ -107,15 +109,6 @@
             }
         }
     </style>
-
-    <script>
-        const root = "comp2140-mon3-5-group1/";
-        var rootWindow = window.location.href.substring(0, window.location.href.indexOf(root) + root.length);
-        
-        function navigation(navTo) {
-            window.location.href = rootWindow + "authentication/index.php" + (navTo == null ? "" : "?dest=" + navTo);
-        }
-    </script>
 
     <nav id="master-navigation-bar">
         <header>
