@@ -34,16 +34,6 @@ main {
     padding-bottom: 1vmin;
 }
 
-@media (max-width: 768px) {
-    #tagline {
-        width: 80%;
-    }
-    #tagline > div {
-        flex-direction: column;
-        gap: 2vmax;
-    }
-}
-
 
 #instagram-carousel {
     display: flex;
@@ -56,13 +46,18 @@ main {
 
 #get-started {
     margin-top: 1vmax;
+    padding-top: 1vmax;
+    padding-left: 4vmax;
+    padding-right: 4vmax;
 
-    padding-top: 4vmax;
-    padding-bottom: 1vmax;
-    padding-left: 9vw;
-    padding-right: 9vw;
+    width: 70%;
 
-    background-color: #e0ebe0;
+    align-self: center;
+
+    background-color: #EFEFEB;
+    color: black;
+
+    border-radius: 2rem;
 }
 #get-started > h1 {
     margin-bottom: 1vmax;
@@ -82,11 +77,8 @@ main {
 
     margin-bottom: 2rem;
 }
-#get-started > div > button {
-    border-radius: 0;
-}
 #continue-blurb {
-    padding-left: 9vw;
+    margin-left: calc(15% - 4vmax + 2rem);  
     padding-top: 0.5rem;
     padding-bottom: 0.5rem;
 
@@ -100,11 +92,33 @@ main {
 }
 #continue-blurb > button {
     font-size: 0.9em;
+    font-weight: 400;
 }
 
+/* Responsiveness */
+
 @media (max-width: 768px) {
+    #tagline {
+        width: 80%;
+    }
+    #tagline > div {
+        flex-direction: column;
+        align-items: start;
+        gap: 2vmax;
+    }
+    #tagline > div > button {
+        align-self: center;
+    }
+
     #get-started {
-        padding-left: 5vw;
-        padding-right: 5vw;
+        width: 80%;
+    }
+    #get-started > p {
+        font-size:small;
+        font-weight: 400;
+        margin-bottom: 1.5rem;
+    }
+    #continue-blurb {
+        margin-left: calc(10% - 4vmax + 2rem);
     }
 }
