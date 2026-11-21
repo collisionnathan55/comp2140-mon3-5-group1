@@ -1,2 +1,14 @@
 # Disallow viewing all website files
 Options -Indexes
+
+# Protects .env
+<FilesMatch "(\.env|\.example)+$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Protects Github Files
+<FIlesMatch "(\.gitignore|\.md)">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
