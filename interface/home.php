@@ -1,17 +1,22 @@
 <?php
     require "../authentication/user-auth-check.php";
+    if (!checkPageAuth(basename(__FILE__))) {
+        exit();
+    }
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
         <title>Yaad Goods Store</title>
-        <link rel="icon" href="images/business-logo.png" type="image/png">
-        <link rel="stylesheet" href="master.css">
-        <link rel="stylesheet" href="page-home.css">
+        <link rel="icon" href="images/business-logo.png" type="image/png"/>
+        <link rel="stylesheet" href="master.css"/>
+        <link rel="stylesheet" href="page-home.css"/>
+
         <script type="text/javascript" src="navigation.js"></script>
+        <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
     </head>
 
     <body>
@@ -20,7 +25,7 @@
         </header>
 
         <main>
-            <div id="tagline">
+            <div class="bubble-div" id="tagline">
                 <h1>Fresh. Natural. Jamaican.</h1>
                 <div>
                     <div>
@@ -35,7 +40,7 @@
                 <?php include "instance/home-page-instagram.html" ?>
             </div>
 
-            <section id="get-started">
+            <section class="bubble-div" id="get-started">
                 <h1>Ready to make an order?</h1>
                 <p>Browse our products and add them to your cart and finalize your order whenever you're ready. Find us on campus to pay and collect, or request delivery.</p>
                 <div>
