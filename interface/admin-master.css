@@ -1,0 +1,29 @@
+html {
+    background-color: #edefec;
+}
+
+.admin * {
+    font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+}
+
+/* Elements */
+
+.admin button {
+    padding: 0.5em;
+
+    font-size: 1em;
+    font-weight: 400;
+
+    color: black;
+    border-color: black;
+    background-color: white;
+    border-style: solid;
+    border-radius: 0;
+}
+.admin button:hover {
+    color: green;
+    border-color: green;
+    transform: scale(1);
+
+    transition: color 50ms ease-out border-color 50ms ease-out;
+}

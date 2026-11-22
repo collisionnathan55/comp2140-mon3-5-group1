@@ -20,6 +20,8 @@
 
 
 #instagram-carousel {
+    align-self: center;
+
     display: flex;
     flex-direction: column;
 

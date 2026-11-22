@@ -22,7 +22,8 @@ function forceSessionData()
     session_name("yaad-sesh");
     $sessionFlags = [
         "cookie_samesite" => "Strict",
-        "cookie_lifetime" => 120, //3600
+        "cookie_lifetime" => 600,   
+        // 10 minutes of inactivity?
         "cookie_secure" => 1,
         "cookie_httponly" => 1
     ];
@@ -33,7 +34,6 @@ function forceSessionData()
     }
 
     if (!checkInvalidSession()) {
-        echo "<br>INVALID SESSION<br><br>";
         session_unset();
         session_regenerate_id(true);
     }

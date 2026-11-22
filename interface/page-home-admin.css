@@ -1,0 +1,72 @@
+main {
+    padding: 1vmax;
+
+    justify-content: space-between;
+    gap: 2vmax;
+}
+
+main > div {
+    width: 100%;
+}
+main > div > header {
+    height: 5rem;
+}
+main > div > header > img {
+    margin-right: 1vmax;
+    float: left;
+    height: 3rem;
+}
+main > div > header > h1 {
+    font-size: 1.5em;
+}
+main > div > header > h2 {
+    font-size: 1.2em;
+}
+main > div > hr {
+    border-width: 0.1rem;
+    border-style: solid;
+    color: black;
+
+    margin: 0;
+    margin-bottom: 1em;
+}
+
+#admin-panel {
+    width: 100%;
+    padding-left: 2vmax;
+}
+#admin-panel > div {
+    width: 70%;
+    padding-top: 3vmax;
+}
+#admin-panel > div > button {
+    float: left;
+    margin-right: 1rem;
+    margin-bottom: 1rem;
+}
+
+#logout-btn {
+    align-self: flex-end;
+    margin-right: 3vw;
+}
+
+@media (max-width: 768px) {
+    main {
+        padding: 1vmax;
+        gap: 5vmax;
+    }
+    #admin-panel > div {
+        width: 100%;
+        padding-left: 0vmax;
+    }
+    #logout-btn {
+        align-self: center;
+        margin-right: 0;
+    }
+}
+
+@media (max-width: 376px) {
+    #admin-panel > div > button {
+        margin-bottom: 2rem;
+    }
+}
