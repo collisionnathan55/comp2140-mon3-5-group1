@@ -26,7 +26,7 @@
                 <h1>Admin Portal</h1>
                 <form action="../authentication/user-authentication.php" method="post">
                     <section>
-                        <input type="password" name="login-password" pattern="^[A-Za-z_ 0-9]+$" aria-labelledby="login-password-label"></input>
+                        <input type="password" name="login-password" aria-labelledby="login-password-label"></input>
                         <label id="login-password-label">Password</label>
                     </section>
                     <button>Log in</button>

@@ -26,20 +26,15 @@
 
         <main class="admin">
             <div>
-                <header>
-                    <img src="images/business-logo.png" alt="Business logo." />
-                    <h1>Y.A.A.D Goods</h1>
-                    <h2>Staff Administration System</h2>
-                </header>
-                <hr/>
+                <?php include "instance/admin-header.html" ?>
                 <section id="admin-panel">
                     <div>
-                        <button>Enter</button>
+                        <button onclick="navigation('page-products-admin.php')">Enter</button>
                         <h3>Manage Products</h3>
                         <p>Add products to the store database. View and edit products in the store database. Archive or delete products as necessary.</p>
                     </div>
                     <div>
-                        <button>Enter</button>
+                        <button onclick="navigation('page-orders-admin.php')">Enter</button>
                         <h3>Manage Orders</h3>
                         <p>Manually create and edit orders as processing requires. View orders and mark them for cancel or completion.</p>
                     </div>

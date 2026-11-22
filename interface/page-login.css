@@ -46,3 +46,9 @@
 #login-area > form label {
     margin-left: 1em;
 }
+
+@media (max-width: 768px) {
+    #login-area {
+        width: 70%;
+    }
+}

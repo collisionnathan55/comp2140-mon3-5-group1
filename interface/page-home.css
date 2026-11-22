@@ -54,6 +54,7 @@
     margin-left: calc(15% - 4vmax + 2rem);  
     padding-top: 0.5rem;
     padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
 
     display: flex;
     flex-direction: row;

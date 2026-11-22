@@ -56,7 +56,9 @@ function logSession()
 
 function checkPageAuth(string $pageName) {
     $adminPages = [
-        "page-home-admin.php"
+        "page-home-admin.php",
+        "page-products-admin.php",
+        "page-orders-admin.php"
     ];
 
     if (in_array($pageName, $adminPages)) {

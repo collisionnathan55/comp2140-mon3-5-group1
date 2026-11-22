@@ -2,6 +2,10 @@ html {
     background-color: #edefec;
 }
 
+main {
+    padding: 3vmax;
+}
+
 .admin * {
     font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
 }
@@ -27,3 +31,4 @@ html {
 
     transition: color 50ms ease-out border-color 50ms ease-out;
 }
+
