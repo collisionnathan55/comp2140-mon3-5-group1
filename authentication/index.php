@@ -1,4 +1,10 @@
 <?php
+/* 
+    This file standardizes the site navigation between pages
+    to start from the main folder. Proper authentication of
+    whether a user is allowed to be on a page is handled in
+    user-authentication.php.
+*/
 
 function getNavigationQuery() {
     if (!isset($_GET["dest"]) || !preg_match('/^[A-Za-z_\-.]+$/', $_GET["dest"])) {

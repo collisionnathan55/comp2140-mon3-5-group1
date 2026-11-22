@@ -1,4 +1,9 @@
 <?php
+/* 
+    This file forces php sessions to be started on every page
+    and handles protecting logged in users from XSS and CSRF attacks,
+    as well as disallows users from accessing admin protected pages.
+*/
 
 function checkInvalidSession() 
 {

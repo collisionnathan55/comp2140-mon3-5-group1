@@ -1,4 +1,11 @@
 <?php
+/* 
+    This file handles the login page requests and grants or
+    disallows users from accessing admin authentication.
+
+    It also allows admin users to log out with the correct query.
+*/
+
 require "user-auth-check.php";
 
 function requestLogin() {
