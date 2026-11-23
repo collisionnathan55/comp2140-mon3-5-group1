@@ -1,5 +1,5 @@
 # Protects .env
-<FilesMatch "\.php$">
+<FilesMatch "\.(php|sql)$">
     Order allow,deny
     Deny from all
 </FilesMatch>

@@ -1,6 +1,12 @@
 <?php require "session-handler.php" ?>
 
 <?php
+/* 
+    This file handles the requests for lower layer actions
+    such as creating products or orders.
+
+    It also handles the page request authorization for every page.
+*/
 
 function authorizePage(string $pageName) {
     $adminPages = [

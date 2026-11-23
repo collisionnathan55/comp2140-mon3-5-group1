@@ -1,5 +1,5 @@
 # Protects .env
-<FilesMatch "^(user-auth-check\.php)$">
+<FilesMatch "^(session-handler|user-authentication|action-authorization)\.php$">
     Order allow,deny
     Deny from all
 </FilesMatch>
