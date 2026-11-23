@@ -15,6 +15,101 @@
         <link rel="stylesheet" href="master.css"/>
         <link rel="stylesheet" href="page-home.css"/>
 
+        <style>
+            #tagline {
+                margin-top: 1vmax;
+                margin-bottom: 2vmax;
+
+                align-self: center;
+            }
+            #tagline > div {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+            }
+            #tagline h1 {
+                padding-bottom: 2vmin;
+            }
+            #tagline p {
+                font-weight: 500;
+                padding-bottom: 1vmin;
+            }
+
+
+            #instagram-carousel {
+                align-self: center;
+
+                display: flex;
+                flex-direction: column;
+
+                align-items: center;
+                justify-items: center;
+            }
+
+
+            #get-started {
+                margin-top: 1vmax;
+                align-self: center;
+            }
+            #get-started > h1 {
+                margin-bottom: 1vmax;
+            }
+            #get-started > p {
+                margin-bottom: 3rem;
+
+                font-size: large;
+                font-weight: 600;
+            }
+            #get-started > div {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: center;
+                gap: 5rem;
+            }
+            #continue-blurb {
+                margin-left: calc(15% - 4vmax + 2rem);  
+                padding-top: 0.5rem;
+                padding-bottom: 0.5rem;
+                margin-bottom: 1rem;
+
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+
+                font-weight: 600;
+
+                gap: 1.5vw;
+            }
+            #continue-blurb > button {
+                font-size: 0.9em;
+                font-weight: 400;
+            }
+
+            /* Responsiveness */
+
+            @media (max-width: 768px) {
+                #tagline > div {
+                    flex-direction: column;
+                    align-items: start;
+                    gap: 2vmax;
+                }
+                #tagline > div > button {
+                    align-self: center;
+                }
+                #get-started > p {
+                    font-size:small;
+                    font-weight: 400;
+                    margin-bottom: 1.5rem;
+                }
+                #continue-blurb {
+                    margin-left: calc(10% - 4vmax + 2rem);
+                }
+            }
+
+        </style>
+
         <script type="text/javascript" src="navigation.js"></script>
         <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
     </head>

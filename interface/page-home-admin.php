@@ -16,6 +16,62 @@
         <link rel="stylesheet" href="admin-master.css">
         <link rel="stylesheet" href="page-home-admin.css">
 
+        <style>
+            main {
+                justify-content: space-between;
+                gap: 2vmax;
+            }
+
+            main > div {
+                width: 100%;
+            }
+
+            #admin-panel {
+                padding-top: 2vmax;
+                padding-left: 2vmax;
+
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                align-items: start;
+
+                gap: 3vmax;
+            }
+            #admin-panel > div {
+                width: 70%;
+            }
+            #admin-panel > div > button {
+                float: left;
+                margin-right: 1rem;
+                margin-bottom: 1rem;
+            }
+
+            #logout-btn {
+                align-self: flex-end;
+                margin-right: 3vw;
+            }
+
+            @media (max-width: 768px) {
+                main {
+                    padding: 1vmax;
+                    gap: 5vmax;
+                }
+
+                #admin-panel > div {
+                    width: 100%;
+                    padding-left: 0vmax;
+                }
+                #admin-panel > div > button {
+                    margin-bottom: 2rem;
+                }
+
+                #logout-btn {
+                    align-self: center;
+                    margin-right: 0;
+                }
+            }
+        </style>
+
         <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
     </head>
 

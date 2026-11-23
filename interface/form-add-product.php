@@ -18,67 +18,6 @@
         <link rel="stylesheet" href="admin-master.css">
     </head>
 
-    <style>
-        form {
-            width: 100%;
-
-            display: flex;
-            flex-direction: column;
-            justify-content: start;
-            align-items: start;
-            gap: 1rem;
-        }
-
-        form > section {
-            width: 70%;
-            padding-bottom: 1vmax;
-            
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: 1fr;
-            justify-content:left;
-            align-items: start;
-        }
-
-        form > section > div {
-            width: 100%;
-
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            grid-template-rows: 1fr 1fr;
-
-            justify-content:left;
-            align-items: center;
-            
-            row-gap: 1vmin;
-            column-gap: 0;
-        }
-
-        form p {
-            width: 90%;
-
-            grid-row: 2;
-            grid-column: span 2;
-
-            font-size: 0.85em;
-            text-align:justify;
-
-            color: #00000097;
-        }
-
-        form label, form input {
-            grid-row: 1;
-            font-size: 1.1em;
-        }
-        form label {
-            grid-column: 1;
-        }
-        form input {
-            grid-column: 2;
-            width: 90%;
-        }
-    </style>
-
     <body>
         <header>
             <?php require "instance/navigation-bar.html"?>
@@ -86,7 +25,7 @@
 
         <main class="admin">
             <?php include "instance/admin-header.html" ?>
-            <form method="post">
+            <form class="admin-form" method="post">
                 <section>
                     <div>
                         <label id="product-label-category">Category</label>
