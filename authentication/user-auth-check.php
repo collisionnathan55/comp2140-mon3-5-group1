@@ -27,8 +27,8 @@ function forceSessionData()
     session_name("yaad-sesh");
     $sessionFlags = [
         "cookie_samesite" => "Strict",
-        "cookie_lifetime" => 600,   
-        // 10 minutes of inactivity?
+        "cookie_lifetime" => 900,   
+        // 15 minutes of inactivity?
         "cookie_secure" => 1,
         "cookie_httponly" => 1
     ];
@@ -63,7 +63,9 @@ function checkPageAuth(string $pageName) {
     $adminPages = [
         "page-home-admin.php",
         "page-products-admin.php",
-        "page-orders-admin.php"
+        "page-orders-admin.php",
+
+        "form-add-product.php"
     ];
 
     if (in_array($pageName, $adminPages)) {

@@ -13,10 +13,18 @@ function getNavigationQuery() {
     return $_GET["dest"];
 }
 
+function getQuery() {
+    if (!isset($_GET["nav-query"]) || !preg_match('/^[A-Za-z0-9 ]+$/', $_GET["nav-query"])) {
+        return "";
+    }
+    return "?type=" . $_GET["nav-query"];
+}
+
 ?>
 
 <?php
 const root = "comp2140-mon3-5-group1/";
 $rootWindow = substr($_SERVER["PHP_SELF"], 0, strpos($_SERVER["PHP_SELF"], root) + strlen(root));
-header("Location: " . $rootWindow . "interface/" . getNavigationQuery());
+
+header("Location: " . $rootWindow . "interface/" . getNavigationQuery() . getQuery());
 ?>

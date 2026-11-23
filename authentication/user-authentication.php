@@ -9,7 +9,7 @@
 require "user-auth-check.php";
 
 function requestLogin() {
-    $env = parse_ini_file(".env");
+    $env = parse_ini_file("../.env");
     $login = false;
     if (isset($env["LOGIN_KEY"]) && isset($_POST["login-password"]) 
         && $_POST["login-password"] == $env["LOGIN_KEY"]) {

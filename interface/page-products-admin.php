@@ -28,7 +28,7 @@
             <?php include "instance/admin-header.html" ?>
             <div>
                 <section id="admin-product-controls">
-                    <button>Create Product</button>
+                    <button onclick="navigation('form-add-product.php')">Create Product</button>
                     <button>Edit Product</button>
                     <button>Archive Selected</button>
                 </section>

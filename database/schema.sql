@@ -12,17 +12,27 @@ USE yaad_goods;
 
 CREATE TABLE IF NOT EXISTS products (
     product_id INT AUTO_INCREMENT PRIMARY KEY,
-    product_name VARCHAR(150) NOT NULL UNIQUE,
+    display_category VARCHAR(150) NOT NULL,
+    display_name VARCHAR(150) NOT NULL UNIQUE,
     description TEXT,
-    price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+
+    original_price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    sell_quantity DECIMAL(10,3) NOT NULL DEFAULT 0.000,
     stock_quantity DECIMAL(10,3) NOT NULL DEFAULT 0.000,
     reserved_quantity DECIMAL(10,3) NOT NULL DEFAULT 0.000,
     unit_of_measure VARCHAR(20) NOT NULL DEFAULT 'item',
-    is_available TINYINT(1) NOT NULL DEFAULT 1,
+
+    expiration_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    stale_price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+
+    -- Internal Fields
+
+    is_archived TINYINT(1) NOT NULL DEFAULT 0,
+
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP,
-    KEY idx_product_name (product_name)
+    KEY idx_product_name (display_name)
 ) ENGINE=InnoDB;
 
 
@@ -30,13 +40,13 @@ CREATE TABLE IF NOT EXISTS products (
 -- 2. USERS
 -- =====================================
 
-CREATE TABLE IF NOT EXISTS users (
+/* CREATE TABLE IF NOT EXISTS users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(100) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     role VARCHAR(30) NOT NULL DEFAULT 'staff',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
+) ENGINE=InnoDB; */
 
 
 -- =====================================
@@ -65,10 +75,8 @@ CREATE TABLE IF NOT EXISTS order_items (
     order_item_id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT NOT NULL,
     product_id INT NOT NULL,
-    product_name VARCHAR(150) NOT NULL,
     quantity DECIMAL(10,3) NOT NULL,
-    unit_price DECIMAL(10,2) NOT NULL,
-    subtotal DECIMAL(10,2) NOT NULL,
+    stored_unit_price DECIMAL(10,2) NOT NULL,
 
     UNIQUE KEY unique_order_product (order_id, product_id),
 

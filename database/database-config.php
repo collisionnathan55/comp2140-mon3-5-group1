@@ -1,7 +1,6 @@
 
 <?php
-
-$env = parse_ini_file(dirname(__DIR__) . '/.env');
+$env = parse_ini_file(dirname(__DIR__) . '../.env');
 
 if ($env === false) {
     throw new RuntimeException("Could not load the .env file.");
