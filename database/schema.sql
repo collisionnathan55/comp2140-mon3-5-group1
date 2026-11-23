@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS products (
     sell_quantity DECIMAL(10,3) NOT NULL DEFAULT 0.000,
     stock_quantity DECIMAL(10,3) NOT NULL DEFAULT 0.000,
     reserved_quantity DECIMAL(10,3) NOT NULL DEFAULT 0.000,
+    
     unit_of_measure VARCHAR(20) NOT NULL DEFAULT 'item',
 
     expiration_date DATE NOT NULL DEFAULT CURRENT_DATE,

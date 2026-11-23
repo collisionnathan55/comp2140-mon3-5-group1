@@ -36,44 +36,45 @@ main {
 
 .admin-form {
     width: 100%;
+    width: 100%;
 
     display: flex;
     flex-direction: column;
-    justify-content: start;
-    align-items: start;
-    gap: 1rem;
+    justify-content: space-between;
+    align-items: center;
+
+    gap: 2rem;
+}
+.admin-form > input {
+    width: 15%;
 }
 
-.admin-form > section {
-    width: 70%;
+.admin-form-grid {
+    width: 100%;
+
+    display: grid;
+    grid-template-columns: repeat(auto-fit, 1fr);
+    grid-template-rows: min-content min-content;
+    grid-auto-flow: column;
+    
+    align-items: start;
+    justify-content: start;
+    
+    row-gap: 2vmax;
+    column-gap: 1vmin;
+}
+
+.admin-form-grid section {
     padding-bottom: 1vmax;
     
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr;
-    justify-content:left;
+
     align-items: start;
+    gap: 1vmin;
 }
-
-.admin-form > section > div {
-    width: 100%;
-
-    display: grid;
-    grid-template-columns: 1fr 2fr;
-    grid-template-rows: 1fr 1fr;
-
-    justify-content:left;
-    align-items: center;
-    
-    row-gap: 1vmin;
-    column-gap: 0;
-}
-
-.admin-form p {
+.admin-form-grid p {
     width: 90%;
-
-    grid-row: 2;
-    grid-column: span 2;
 
     font-size: 0.85em;
     text-align:justify;
@@ -81,14 +82,38 @@ main {
     color: #00000097;
 }
 
-.admin-form label, .admin-form input {
-    grid-row: 1;
+.admin-form-grid label, .admin-form-grid input, .admin-form-grid textarea {
     font-size: 1.1em;
 }
-.admin-form label {
-    grid-column: 1;
+.admin-form-grid input {
+    width: 95%;
 }
-.admin-form input {
-    grid-column: 2;
+.form-item-description > textarea {
+    width: 95%;
+    resize: none;
+}
+
+.admin-form-grid div {
+    width: 100%;
+    
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+
+    justify-content:left;
+    align-items: start;
+    
+    gap: 1vmin;
+}
+.form-item-description {
+    grid-column: span 2;
+}
+.admin-form-grid > section > div {
+    grid-row: 1;
+}
+.admin-form-grid > section > .form-item-description {
+    grid-row: 2;
+}
+.admin-form-grid > section input {
     width: 90%;
 }

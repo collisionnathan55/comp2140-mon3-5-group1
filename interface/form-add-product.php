@@ -25,56 +25,63 @@
 
         <main class="admin">
             <?php include "instance/admin-header.html" ?>
-            <form class="admin-form" method="post">
-                <section>
-                    <div>
-                        <label id="product-label-category">Category</label>
-                        <input list="product-system-category" id="product-create-category" type="text" name="product-category" aria-labelledby="product-label-category" placeholder="eg. Apple"></input>
-                        <datalist id="product-system-category">
+            <form class="admin-form" action="" method="post">
+                <article class="admin-form-grid">
+                    <section>
+                        <div>
+                            <label id="product-label-category">Category</label>
+                            <input list="product-system-category" id="product-create-category" type="text" name="product-category" aria-labelledby="product-label-category" placeholder="eg. Apple"></input>
+                            <datalist id="product-system-category">
 
-                        </datalist>
-                        <p>The encompassing category or product type for the item.</p>
-                    </div>
-                    <div>
-                        <label id="product-label-name">Display Name</label>
-                        <input id="product-create-name" type="text" name="product-name" aria-labelledby="product-label-name" placeholder="eg. Gala Apple"></input>
-                        <p>The unique, displayed name identifier of the item.</p>
-                    </div>
-                </section>
-
-                <section>
+                            </datalist>
+                            <p>The encompassing category or product type for the item.</p>
+                        </div>
+                        <div>
+                            <label id="product-label-name">Display Name</label>
+                            <input id="product-create-name" type="text" name="product-name" aria-labelledby="product-label-name" placeholder="eg. Gala Apple"></input>
+                            <p>The unique, displayed name identifier of the item.</p>
+                        </div>
+                        <div class="form-item-description">
+                            <label id="product-label-description">Description</label>
+                            <textarea id="product-create-description" name="product-description" aria-labelledby="product-label-description"></textarea>
+                        </div>
+                    </section>
                     <div>
                         <label id="product-label-price">Price</label>
                         <input id="product-create-price" type="number" name="product-price" aria-labelledby="product-label-price" placeholder="0"></input>
                         <p>The price in Jamaican dollars of the item.</p>
                     </div>
-                    <div>
-                        <label id="product-label-quantity">Quantity</label>
-                        <input id="product-create-quantity" type="number" name="product-quantity" aria-labelledby="product-label-quantity" placeholder="0"></input>
-                        <p>The quantity sold per purchase of the item.</p>
-                    </div>
-                </section>
-
-                <section>
-                    <div>
-                        <label id="product-label-stock">Stock</label>
-                        <input id="product-create-stock" type="number" name="product-stock" aria-labelledby="product-label-stock" placeholder="0"></input>
-                        <p>The amount of current - unreserved to any customer - stock of the item.</p>
-                    </div>
-                </section>
-
-                <section>
-                    <div>
-                        <label id="product-label-freshness">Best Sold by</label>
-                        <input id="product-create-freshness" type="date" name="product-freshness" id="product-label-freshness"></input>
-                        <p>The date which the item may start becoming stale / spoilled.</p>
-                    </div>
-                    <div>
-                        <label id="product-label-spoil">After-Best Price</label>
-                        <input id="product-create-spoil" type="number" name="product-spoil" aria-labelledby="product-label-spoil" placeholder="0"></input>
-                        <p>The price in Jamaican dollars which the item sells for within three (3) days of expiration.</p>
-                    </div>
-                </section>
+                    <section>
+                        <div>
+                            <label id="product-label-quantity">Quantity per Sale</label>
+                            <input id="product-create-quantity" type="number" name="product-quantity" aria-labelledby="product-label-quantity" placeholder="0"></input>
+                            <p>The quantity sold per purchase of the item.</p>
+                        </div>
+                        <div>
+                            <label id="product-label-unit">Unit</label>
+                            <input id="product-create-unit" type="text" name="product-unit" aria-labelledby="product-label-unit" placeholder="Item"></input>
+                            <p>The unit of measurement for the item.</p>
+                        </div>
+                        <div>
+                            <label id="product-label-stock">Stock</label>
+                            <input id="product-create-stock" type="number" name="product-stock" aria-labelledby="product-label-stock" placeholder="0"></input>
+                            <p>The amount of current stock of the item.</p>
+                        </div>
+                    </section>
+                    <section>
+                        <div>
+                            <label id="product-label-freshness">Best Sold By</label>
+                            <input id="product-create-freshness" type="date" name="product-freshness" id="product-label-freshness"></input>
+                            <p>The date which the item may start becoming stale / spoilled.</p>
+                        </div>
+                        <div>
+                            <label id="product-label-spoil">After 'Best Sold By' Price</label>
+                            <input id="product-create-spoil" type="number" name="product-spoil" aria-labelledby="product-label-spoil" placeholder="0"></input>
+                            <p>The price in Jamaican dollars which the item sells for within three (3) days of expiration.</p>
+                        </div>
+                    </section>
+                </article>
+                <input type="submit"></input>
             </form>
         </main>
 

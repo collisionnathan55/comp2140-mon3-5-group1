@@ -13,7 +13,6 @@
         <title>Yaad Goods - Login</title>
         <link rel="icon" href="images/business-logo.png" type="image/png">
         <link rel="stylesheet" href="master.css">
-        <link rel="stylesheet" href="page-login.css">
 
         <style>
             #login-area {

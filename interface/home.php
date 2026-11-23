@@ -13,7 +13,6 @@
         <title>Yaad Goods Store</title>
         <link rel="icon" href="images/business-logo.png" type="image/png"/>
         <link rel="stylesheet" href="master.css"/>
-        <link rel="stylesheet" href="page-home.css"/>
 
         <style>
             #tagline {
