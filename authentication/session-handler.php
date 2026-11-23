@@ -61,3 +61,24 @@ function logSession()
 
 forceSessionData();
 ?>
+
+<?php
+
+function isAdmin() {
+    return isset($_SESSION["admin-auth"]) && $_SESSION["admin-auth"] == 1;
+}
+
+function storeFormRequest($request) {
+    $_SESSION["last-form-request"] = $request;
+}
+function getFormRequest() {
+    if (isset($_SESSION["last-form-request"])) {
+        return $_SESSION["last-form-request"];
+    }
+    return [];
+}
+function discardFormRequest() {
+    $_SESSION["last-form-request"] = null;
+}
+
+?>
