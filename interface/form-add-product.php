@@ -16,6 +16,9 @@
         <link rel="icon" href="images/business-logo.png" type="image/png">
         <link rel="stylesheet" href="master.css">
         <link rel="stylesheet" href="admin-master.css">
+
+        <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
+        <script type="text/javascript" src="admin-master.js"></script>
     </head>
 
     <body>

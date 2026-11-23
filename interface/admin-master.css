@@ -36,7 +36,6 @@ main {
 
 .admin-form {
     width: 100%;
-    width: 100%;
 
     display: flex;
     flex-direction: column;
@@ -64,15 +63,6 @@ main {
     column-gap: 1vmin;
 }
 
-.admin-form-grid section {
-    padding-bottom: 1vmax;
-    
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-
-    align-items: start;
-    gap: 1vmin;
-}
 .admin-form-grid p {
     width: 90%;
 
@@ -81,7 +71,6 @@ main {
 
     color: #00000097;
 }
-
 .admin-form-grid label, .admin-form-grid input, .admin-form-grid textarea {
     font-size: 1.1em;
 }
@@ -93,6 +82,15 @@ main {
     resize: none;
 }
 
+.admin-form-grid section {
+    padding-bottom: 1vmax;
+    
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+
+    align-items: start;
+    gap: 1vmin;
+}
 .admin-form-grid div {
     width: 100%;
     
@@ -116,4 +114,30 @@ main {
 }
 .admin-form-grid > section input {
     width: 90%;
+}
+
+@media (max-width: 768px) {
+    .admin-form-grid section {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 380px) {
+    .admin-form-grid, .admin-form-grid div {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .admin-form-grid input, 
+    .admin-form-grid textarea, 
+    .admin-form-grid > section input {
+        width: 90%;
+    }
+    .admin-form-grid p {
+        width: 90%;
+    }
 }
