@@ -1,6 +1,6 @@
 <?php
-    require "../authentication/user-auth-check.php";
-    if (!checkPageAuth(basename(__FILE__))) {
+    require "../authentication/action-authorization.php";
+    if (!authorizePage(basename(__FILE__))) {
         exit();
     }
 ?>

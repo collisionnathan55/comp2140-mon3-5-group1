@@ -1,6 +1,6 @@
 <?php
-    require "../authentication/user-auth-check.php";
-    if (!checkPageAuth(basename(__FILE__))) {
+    require "../authentication/action-authorization.php";
+    if (!authorizePage(basename(__FILE__))) {
         exit();
     }
 
@@ -19,6 +19,9 @@
 
         <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
         <script type="text/javascript" src="admin-master.js"></script>
+        <script>
+            
+        </script>
     </head>
 
     <body>
@@ -33,16 +36,16 @@
                     <section>
                         <div>
                             <label id="product-label-category">Category</label>
-                            <input list="product-system-category" id="product-create-category" type="text" name="product-category" aria-labelledby="product-label-category" placeholder="eg. Apple"></input>
+                            <input list="product-system-category" id="product-create-category" type="text" name="product-category" aria-labelledby="product-label-category" placeholder="eg. Apple" pattern="^[A-Za-z ]+$"></input>
                             <datalist id="product-system-category">
 
                             </datalist>
                             <p>The encompassing category or product type for the item.</p>
                         </div>
                         <div>
-                            <label id="product-label-name">Display Name</label>
-                            <input id="product-create-name" type="text" name="product-name" aria-labelledby="product-label-name" placeholder="eg. Gala Apple"></input>
-                            <p>The unique, displayed name identifier of the item.</p>
+                            <label id="product-label-name"><b>Display Name</b></label>
+                            <input id="product-create-name" type="text" name="product-name" aria-labelledby="product-label-name" placeholder="eg. Gala Apple" pattern="^[A-Za-z ]+$"></input>
+                            <p>The <strong>unique</strong>, displayed name identifier of the item.</p>
                         </div>
                         <div class="form-item-description">
                             <label id="product-label-description">Description</label>
@@ -62,7 +65,7 @@
                         </div>
                         <div>
                             <label id="product-label-unit">Unit</label>
-                            <input id="product-create-unit" type="text" name="product-unit" aria-labelledby="product-label-unit" placeholder="Item"></input>
+                            <input id="product-create-unit" type="text" name="product-unit" aria-labelledby="product-label-unit" placeholder="Item" pattern="^[A-Za-z\-]+$"></input>
                             <p>The unit of measurement for the item.</p>
                         </div>
                         <div>
@@ -84,7 +87,7 @@
                         </div>
                     </section>
                 </article>
-                <input type="submit"></input>
+                <button type="submit">Submit</button>
             </form>
         </main>
 

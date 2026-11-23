@@ -1,3 +1,5 @@
+<?php require "session-handler.php" ?>
+
 <?php
 /* 
     This file handles the login page requests and grants or
@@ -5,8 +7,6 @@
 
     It also allows admin users to log out with the correct query.
 */
-
-require "user-auth-check.php";
 
 function requestLogin() {
     $env = parse_ini_file("../.env");
