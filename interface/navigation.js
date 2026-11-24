@@ -8,6 +8,5 @@ var rootWindow = window.location.href.substring(0, window.location.href.indexOf(
 
 function navigation(navTo, query = null) {
     window.location.href = rootWindow + "authentication/index.php" 
-    + (navTo == null ? "" : "?dest=" + navTo)
-    + (query == null ? "" : "?nav-query" + query);
+    + (navTo == null ? "" : "?dest=" + navTo + (query == null ? "" : "&nav-query=" + query));
 }

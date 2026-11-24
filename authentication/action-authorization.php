@@ -89,10 +89,20 @@ switch ($attempt) {
             break;
         }
 
-        $response["status"] = "form-ok";
-        $response["alert"] = "Successfully saved product.";
+        if ($product["product-id"] != -1) {
+            updateProduct($product);
 
-        createProduct($product);
+            $response["status"] = "form-leave";
+            $response["alert"] = "Successfully saved product.";
+        }
+        else {
+            createProduct($product);
+
+            $response["status"] = "form-reset";
+            $response["alert"] = "Successfully created product.";
+        }
+
+        discardFormRequest();
         break;
 
     case "get-products-all":
@@ -112,6 +122,24 @@ switch ($attempt) {
         include "../products/get-products.php";
         $response["dataList"] = getProductCategories();
         break;
+    case "get-products":
+        include "../products/get-products.php";
+        if (isset($_GET["id"])) {
+            $product = getProductbyId((int) $_GET["id"]);
+            if ($product == null) {
+                http_response_code(500);
+                exit;
+            }
+            $response["dataList"] = $product;
+            break;
+        }
+        if (isset($_GET["name"])) {
+            $response["dataList"] = getProductsbyName($_GET["name"]);
+            break;
+        }
+
+        http_response_code(500);
+        exit;
 }
 
 echo json_encode($response);

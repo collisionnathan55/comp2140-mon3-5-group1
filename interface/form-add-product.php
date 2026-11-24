@@ -4,9 +4,17 @@
         exit();
     }
 
-    $editID = (isset($_GET["nav-query"]) ? $_GET["nav-query"] : null);
-
-    include_once "../database/presets.php";
+    $editID = (isset($_GET["val"]) ? (int)$_GET["val"] : null);
+    $edit = false;
+    if ($editID != null) {
+        include "../products/get-products.php";
+        if (getProductbyId($editID) != null) {
+            $edit = true;
+        }
+        else {
+            header("Location: ../interface/page-products-admin.php");
+        }
+    }
 ?>
 
 <!DOCTYPE html>
@@ -23,6 +31,67 @@
         <script type="text/javascript" src="admin-master.js"></script>
 
         <script>
+
+            function populateCategories() {
+                jQuery.get("../authentication/action-authorization.php?attempt=get-products-categories")
+                    .done(function(response) {
+                        var json = jQuery.parseJSON(response);
+                        var categories = json.dataList;
+
+                        var catOptions = "";
+                        categories.forEach(c => {
+                            catOptions += "<option value=\"" + c + "\"/>";
+                        })
+                        jQuery("#product-system-category").html(catOptions);
+                    })
+                    .fail(function(response) { console.log("Issue getting product categories");
+                     });
+            }
+            populateCategories();
+
+            function prefillFormWithProduct(product) {
+                jQuery.get("../authentication/action-authorization.php?attempt=get-products&id=" + product)
+                    .done(function(response) {
+                        var json = jQuery.parseJSON(response);
+                        prefillFormWithProduct_C(json.dataList);
+                    })
+                    .fail(function(response) { 
+                        console.log("Issue getting product");
+                        navigation("page-products-admin.php");
+                    });
+            }
+            function prefillFormWithProduct_C(product) {
+                jQuery("#product-create-id").val(product["product_id"]);
+
+                jQuery("#product-create-category").val(product["display_category"]);
+                jQuery("#product-create-name").val(product["display_name"]);
+                jQuery("#product-create-description").val(product["description"]);
+
+                jQuery("#product-create-price").val(product["original_price"]);
+                jQuery("#product-create-quantity").val(product["sell_quantity"]);
+                jQuery("#product-create-stock").val(product["stock_quantity"]);
+
+                jQuery("#product-create-reserved").val(product["reserved_quantity"]);
+
+                jQuery("#product-create-freshness").val(product["expiration_date"]);
+                jQuery("#product-create-spoil").val(product["stale_price"]);
+
+                jQuery("#product-create-archived").prop("checked", product["is_archived"]);
+
+                // lock
+
+                jQuery("#product-create-name").prop("readonly", true);
+                jQuery("#product-create-name").css("background-color", "#d8d8d8");
+
+                jQuery("#product-create-reserved").prop("readonly", true);
+                jQuery("#product-create-reserved").css("background-color", "#d8d8d8");
+
+                jQuery("#product-create-stock").prop("min", product["reserved_quantity"]);
+            }
+            <?php $edit ? print("prefillFormWithProduct(" . $editID . ")") : print("") ?>
+
+            //
+
             function defaultAndSubmitForm(event, type) {
                 event.preventDefault();
                 var form = event.target;
@@ -46,8 +115,12 @@
                     dialog[0].showModal();
                 }
 
-                if (json.status == "form-ok") {
+                if (json.status == "form-reset") {
                     jQuery(".admin-form")[0].reset();
+                }
+
+                if (json.status == "form-leave") {
+                    navigation("page-products-admin.php");
                 }
             }
 
@@ -56,23 +129,6 @@
                     .done((response) => formResponse(response))
                     .fail(function() { alert("There was an internal issue submitting the form.") });
             }
-
-            function populateCategories() {
-                jQuery.get("../authentication/action-authorization.php?attempt=get-products-categories")
-                    .done(function(response) {
-                        var json = jQuery.parseJSON(response);
-                        var categories = json.dataList;
-
-                        var catOptions = "";
-                        categories.forEach(c => {
-                            catOptions += "<option value=\"" + c + "\"/>";
-                        })
-                        jQuery("#product-system-category").html(catOptions);
-                    })
-                    .fail(function(response) { console.log("Issue getting product categories");
-                     });
-            }
-            populateCategories();
         </script>
     </head>
 
@@ -87,12 +143,13 @@
             <dialog class="admin-form-confirmation" closedby="closerequest">
             </dialog>
             
-            <form class="admin-form" action="../authentication/action-authorization.php" method="post" onsubmit="defaultAndSubmitForm(event, <?php ($editID == null ? print('\'add-product\'') : print('\'edit-product\'')) ?>)">
+            <form class="admin-form" action="../authentication/action-authorization.php" method="post" onsubmit="defaultAndSubmitForm(event, <?php (!$edit ? print('\'add-product\'') : print('\'edit-product\'')) ?>)">
                 <article class="admin-form-grid">
                     <section>
+                        <?php $edit ? print('<input type="hidden" id="product-create-id" name="product-id" value="-1" readonly/>') : print('')?>
                         <div>
                             <label id="product-label-category">Category</label>
-                            <input list="product-system-category" id="product-create-category" type="text" name="product-category" aria-labelledby="product-label-category" placeholder="eg. Apple" pattern="^[A-Za-z ]+$"></input>
+                            <input list="product-system-category" id="product-create-category" type="text" name="product-category" aria-labelledby="product-label-category" placeholder="eg. Apple"  pattern="^[A-Za-z ]+$"></input>
                             <datalist id="product-system-category">
 
                             </datalist>
@@ -129,6 +186,11 @@
                             <input id="product-create-stock" type="number" name="product-stock" aria-labelledby="product-label-stock" placeholder="0" step="0.1" min="0"></input>
                             <p>The amount of current stock of the item.</p>
                         </div>
+                        <?php if ($edit) {
+                        echo '<div><label id="product-label-reserved">Reserved Stock</label>';
+                        echo '<input id="product-create-reserved" type="number" name="product-reserved" aria-labelledby="product-label-reserved" placeholder="0" step="0.1" min="0" readonly></input>';
+                        echo '<p>The amount of stock reserved by customers for the item.</p></div>';
+                    } ?>
                     </section>
                     <section>
                         <div>

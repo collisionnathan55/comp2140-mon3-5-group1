@@ -43,6 +43,9 @@ function getProductsbyName(string $product_name) {
 
     return [];
 }
+function getProductbyId(int $id) {
+    return count(db_query_product_id($id)) > 0 ? db_query_product_id($id)[0] : null;
+}
 
 function getProductID(string $product_name) {
     $ps = getAllProducts();
@@ -54,7 +57,6 @@ function getProductID(string $product_name) {
 
     return -1;
 }
-
 function getProductNames() {
     $names = [];
     $ps = getAllProducts();
@@ -65,7 +67,6 @@ function getProductNames() {
     }
     return $names;
 }
-
 function getProductCategories() {
     $names = [];
     $ps = getAllProducts();

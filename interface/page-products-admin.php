@@ -104,6 +104,24 @@
             }
             populatePreviewTable();
 
+            function getSelectedProducts() {
+                var selected = [];
+                jQuery(".admin-preview-table tr").get().forEach(row => {
+                    var checkbox = jQuery(row).find("input");
+                    if (checkbox.get().length > 0 && checkbox[0].checked) {
+                        selected.push(checkbox[0].name);
+                    }
+                })
+
+                return selected;
+            }
+
+            function clickEditProduct() {
+                if (getSelectedProducts().length > 0) {
+                    navigation('form-add-product.php', getSelectedProducts()[0]);
+                }
+            }
+
         </script>
     </head>
 
@@ -117,7 +135,7 @@
             <div>
                 <section id="admin-product-controls">
                     <button onclick="navigation('form-add-product.php')">Create Product</button>
-                    <button>Edit Product</button>
+                    <button onclick="clickEditProduct()">Edit Product</button>
                     <button>Archive Selected</button>
                 </section>
                 <section id="admin-product-preview">

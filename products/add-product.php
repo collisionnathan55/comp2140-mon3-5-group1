@@ -4,14 +4,17 @@
 
 function packProductQuery(array $request) {
     $obj = [];
+
+    $obj["product-id"] = $request["product-id"] ?? -1;
     $obj["product-name"] = $request["product-name"] ?? "";
     $obj["product-category"] = $request["product-category"] ?? "";
     $obj["product-description"] = $request["product-description"] ?? "";
 
     $obj["product-price"] = $request["product-price"] ?? 0.00;
     $obj["product-quantity"] = $request["product-quantity"] ?? 0.00;
-    $obj["product-unit"] = $request["product-unit"] ?? "";
     $obj["product-stock"] = $request["product-stock"] ?? 0.00;
+    $obj["product-reserved"] = $request["product-reserved"] ?? 0.00;
+    $obj["product-unit"] = $request["product-unit"] ?? "";
 
     $obj["product-freshness"] = $request["product-freshness"] ?? date_create('now', timezone_open("EST"))->add(new DateInterval('P7D'))->format("Y-m-d");
     $obj["product-spoil"] = $request["product-spoil"] ?? $obj["product-price"];
@@ -65,6 +68,15 @@ function createProduct(array $p) {
     }
     catch(Exception $e) {
         throw new RuntimeException("Failed to add product.");
+    }
+}
+
+function updateProduct(array $p) {
+    try {
+        db_update_product($p["product-id"], $p["product-category"], $p["product-description"], $p["product-price"], $p["product-quantity"], $p["product-stock"], $p["product-reserved"], $p["product-unit"], $p["product-freshness"], $p["product-spoil"]);
+    }
+    catch(Exception $e) {
+        throw new RuntimeException("Failed to update product.");
     }
 }
 ?>
