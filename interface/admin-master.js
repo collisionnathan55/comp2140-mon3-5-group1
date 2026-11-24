@@ -19,3 +19,30 @@ jQuery(document).ready(function () {
         }
     });
 })
+
+function createTableFromArrays(a_arrays, columns, aliases = null) {
+    if (aliases == null) {
+        aliases = [];
+        columns.forEach(c => {
+            aliases.push(c.replaceAll("_", " "));
+        })
+    }
+
+    var table = "<tr><th class=\"admin-preview-table-check\"/>";
+    aliases.forEach(a => {
+        table += "<th>" + a + "</th>";
+    })
+    table += "</tr>";
+
+    a_arrays.forEach(row => {
+        table += "<tr>";
+        table += "<td class=\"admin-preview-table-check\"><input type=\"checkbox\" name=\"" + row[Object.keys(row)[0]] + "\"/></td>"
+        
+        columns.forEach(c => {
+            table += "<td>" + row[c] + "</td>";
+        })
+        table += "</tr>";
+    })
+
+    return table;
+}

@@ -6,18 +6,25 @@ function getAllProducts() {
     return db_query_products_name("");
 }
 
+function isAvailable(array $product) {
+    if (!isset($product["stock_quantity"]) || !isset($product["reserved_quantity"]) || !isset($product["is_archived"])) {
+        return false;
+    }
+
+    $stock = $product["stock_quantity"];
+    $reserved = $product["reserved_quantity"];
+    $archived = $product["is_archived"];
+
+    if ($stock > 0 && $stock > $reserved && !$archived) {
+        return true;
+    }
+
+    return false;
+}
 function filterAvailable(array $products) {
     $available = [];
     foreach($products as $p) {
-        if (!isset($p["stock_quantity"]) || !isset($p["reserved_quantity"]) || !isset($p["is_archived"])) {
-            continue;
-        }
-
-        $stock = $p["stock_quantity"];
-        $reserved = $p["reserved_quantity"];
-        $archived = $p["is_archived"];
-
-        if ($stock > 0 && $stock > $reserved && !$archived) {
+        if (isAvailable($p)) {
             array_push($available, $p);
         }
     }

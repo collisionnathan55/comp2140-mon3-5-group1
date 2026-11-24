@@ -84,6 +84,27 @@
         </style>
 
         <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
+        <script src="admin-master.js"></script>
+        <script type="text/javascript">
+
+            function populatePreviewTable() {
+                jQuery.get("../authentication/action-authorization.php?attempt=get-products-all")
+                    .done(function(response) {
+                        var json = jQuery.parseJSON(response);
+                        var products = json.dataList;
+
+                        jQuery(".admin-preview-table").html(
+                            createTableFromArrays(products, 
+                            ["product_id", "display_name", "display_category", "is_available", "original_price", "stock_quantity", "reserved_quantity", "unit_of_measure", "expiration_date"], 
+                            ["ID", "Name", "Category", "Availabile", "Price", "Stock", "Reserved Stock", "Unit", "Expiration"]
+                        ));
+                    })
+                    .fail(function(response) { console.log("Issue getting products");
+                     });
+            }
+            populatePreviewTable();
+
+        </script>
     </head>
 
     <body>
@@ -104,7 +125,7 @@
                         <label id="admin-product-filter-label">Search Filter</label>
                         <input id="admin-product-filter" type="search" name="product-filter" placeholder="eg. Apple" pattern="^[A-Za-z_ ]+$" aria-labelledby="admin-product-filter-label"></input>
                     </div>
-                    <table>
+                    <table class="admin-preview-table">
 
                     </table>
                 </section>

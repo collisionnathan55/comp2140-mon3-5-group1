@@ -39,13 +39,15 @@ $attempt = $_GET["attempt"];
 $response = [
     "status" => "ok",
     "alert" => null,
-    "html" => ""
+    "html" => "",
+    "dataList" => []
 ];
 
 $response["status"] = "ok";
 
 $admin_actions = [
-    "add-product", "confirm-product", "edit-product"
+    "add-product", "confirm-product", "edit-product",
+    "get-products-all"
 ];
 if (in_array($attempt, $admin_actions) && !isAdmin()) {
     $response["alert"] = "You don't have the permissions to attempt this.";
@@ -91,6 +93,20 @@ switch ($attempt) {
         $response["alert"] = "Successfully saved product.";
 
         createProduct($product);
+        break;
+
+    case "get-products-all":
+        include "../products/get-products.php";
+        $products = getAllProducts();
+
+        for ($i = 0; $i < count($products); $i++) {
+            $products[$i]["is_available"] = "No";
+            if (isAvailable($products[$i])) {
+                $products[$i]["is_available"] = "Yes";
+            }
+        }
+        
+        $response["dataList"] = $products;
         break;
 }
 

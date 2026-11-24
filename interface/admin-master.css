@@ -132,6 +132,26 @@ main {
     gap: 5%;
 }
 
+/* Tables */
+
+.admin-preview-table {
+    border-collapse: collapse;
+    width: 100%;
+    table-layout: auto;
+}
+
+.admin-preview-table tr, .admin-preview-table th, .admin-preview-table td {
+    border-style: solid;
+    border-width: 0.1rem;
+    border-color: black;
+}
+.admin-preview-table th, .admin-preview-table td {
+    padding: 1vmin;
+}
+.admin-preview-table-check {
+    text-align: center;
+}
+
 /* Responsiveness */
 
 @media (max-width: 768px) {
