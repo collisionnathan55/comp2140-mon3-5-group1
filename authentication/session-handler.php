@@ -68,8 +68,12 @@ function isAdmin() {
     return isset($_SESSION["admin-auth"]) && $_SESSION["admin-auth"] == 1;
 }
 
-function storeFormRequest($request) {
-    $_SESSION["last-form-request"] = $request;
+function storeFormRequest(array $request) {
+    $store = array();
+    foreach($request as $key => $value) {
+        $store[$key] = $value;
+    }
+    $_SESSION["last-form-request"] = $store;
 }
 function getFormRequest() {
     if (isset($_SESSION["last-form-request"])) {

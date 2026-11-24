@@ -47,7 +47,8 @@ $response["status"] = "ok";
 
 $admin_actions = [
     "add-product", "confirm-product", "edit-product",
-    "get-products-all"
+    "get-products-all",
+    "archive-products", "confirm-product-removal"
 ];
 if (in_array($attempt, $admin_actions) && !isAdmin()) {
     $response["alert"] = "You don't have the permissions to attempt this.";
@@ -75,7 +76,6 @@ switch ($attempt) {
         $response["status"] = "confirmation";
         $response["html"] = productConfirmationRequest($product);
         break;
-
     case "confirm-product":
         include "../products/add-product.php";
         
@@ -104,16 +104,31 @@ switch ($attempt) {
 
         discardFormRequest();
         break;
-
+    //
+    
     case "get-products-all":
         include "../products/get-products.php";
         $products = getAllProducts();
 
         for ($i = 0; $i < count($products); $i++) {
-            $products[$i]["is_available"] = "No";
+            $availability = "";
+
             if (isAvailable($products[$i])) {
-                $products[$i]["is_available"] = "Yes";
+                $availability = "Yes";
             }
+            else {
+                if ($products[$i]["is_archived"]) {
+                    $availability .= "Archived<br>";
+                }
+                if (!isInStock($products[$i])) {
+                    $availability .= "Out of Stock<br>";
+                }
+                if (daysToExpiration($products[$i]) <= 0) {
+                    $availability .= "Expired<br>";
+                }
+            }
+
+            $products[$i]["is_available"] = $availability;
         }
         
         $response["dataList"] = $products;
@@ -140,7 +155,40 @@ switch ($attempt) {
 
         http_response_code(500);
         exit;
-}
+    //
+    
+    case "archive-products":
+        include "../products/add-product.php";
+
+        if (!isset($_GET["ids"]) || !isset($_GET["set"])) {
+            $response["status"] = "error";
+            break;
+        }
+
+        if (!is_array($_GET["ids"])) {
+            $_GET["ids"] = [$_GET["ids"]];
+        }
+
+        storeFormRequest($_GET);
+        $response["status"] = "confirmation";
+        $response["html"] = productRemovalConfirmationRequest($_GET["ids"], $_GET["set"] == "true" ? "archiving" : "unarchiving");
+        break;
+    case "confirm-product-removal":
+        include "../products/add-product.php";
+        $query = getFormRequest();
+        $response["alert"] = $query["attempt"];
+
+        switch ($query["attempt"]) {
+            case "archive-products":
+                foreach ($query["ids"] as $id) {
+                    toggleArchiveProduct($id, $query["set"] == "true");
+                }
+            break;
+        }
+
+        break;
+    //
+    }
 
 echo json_encode($response);
 ?>

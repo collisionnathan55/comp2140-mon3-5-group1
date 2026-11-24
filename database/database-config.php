@@ -32,6 +32,8 @@ function pdo()
         error_log($e->getMessage());
         throw new RuntimeException("Database connection failed.");
     }
+
+    return null;
 }
 
 ?>

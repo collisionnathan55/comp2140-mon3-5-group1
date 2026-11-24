@@ -6,24 +6,6 @@ function getAllProducts() {
     return db_query_products_name("");
 }
 
-function isAvailable(array $product) {
-    if (!isset($product["stock_quantity"]) || !isset($product["reserved_quantity"]) || !isset($product["is_archived"]) || !isset($product["expiration_date"])) {
-        return false;
-    }
-
-    $stock = $product["stock_quantity"];
-    $reserved = $product["reserved_quantity"];
-    $archived = $product["is_archived"];
-    
-    $expiration = date_create($product["expiration_date"], timezone_open("EST"));
-    $today = date_create('now', timezone_open("EST"));
-
-    if ($stock > 0 && $stock > $reserved && !$archived && $expiration > $today) {
-        return true;
-    }
-
-    return false;
-}
 function filterAvailable(array $products) {
     $available = [];
     foreach($products as $p) {
@@ -76,6 +58,39 @@ function getProductCategories() {
         }
     }
     return $names;
+}
+
+// product functions
+
+function isInStock(array $product) {
+    if (!isset($product["stock_quantity"]) || !isset($product["reserved_quantity"])) {
+        return false;
+    }
+
+    $stock = $product["stock_quantity"];
+    $reserved = $product["reserved_quantity"];
+    return $stock > 0 && $stock > $reserved;
+}
+function daysToExpiration(array $product) {
+    if (!isset($product["expiration_date"])) {
+        return 365;
+    }
+
+    $expiration = date_create($product["expiration_date"], timezone_open("EST"));
+    $today = date_create('now', timezone_open("EST"));
+
+    return $expiration->diff($today)->days * ($expiration > $today ? 1 : -1);
+}
+function isAvailable(array $product) {
+    if (!isset($product["is_archived"])) {
+        return false;
+    }
+
+    if (isInStock($product) && !$product["is_archived"] && daysToExpiration($product) > 0) {
+        return true;
+    }
+
+    return false;
 }
 
 ?>

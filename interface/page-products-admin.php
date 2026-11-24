@@ -32,12 +32,18 @@
 
                 display: flex;
                 flex-direction: column;
+                justify-content: space-between;
+                align-items: center;
+            }
+            #admin-product-controls > div {
+                display: flex;
+                flex-direction: column;
                 justify-content: start;
                 align-items: center;
 
                 gap: 2vmax;
             }
-            #admin-product-controls > button {
+            #admin-product-controls button {
                 width: 100%;
             }
 
@@ -122,6 +128,40 @@
                 }
             }
 
+            function clickArchiveProduct(archive) {
+                var selected = getSelectedProducts();
+                
+                if (selected.length > 0) {
+                    var archiveQuery = "../authentication/action-authorization.php";
+                    var archiveParams = new URLSearchParams();
+
+                    archiveParams.append("attempt", "archive-products");
+                    archiveParams.append("set", archive);
+                    selected.forEach(p => {
+                        archiveParams.append("ids[]", p);
+                    })
+
+                    jQuery.get(archiveQuery + "?" + archiveParams.toString())
+                    .done(function(response) {
+                        var json = jQuery.parseJSON(response);
+
+                        if (json.status == "confirmation") {
+                            var dialog = jQuery(".admin-form-confirmation");
+                            dialog.html(json.html);
+                            dialog[0].showModal();
+                        }
+                    });
+                }
+            }
+            function confirmRemovalSubmission() {
+                jQuery.ajax("../authentication/action-authorization.php?attempt=confirm-product-removal")
+                    .done(function(response) {
+                        jQuery(".admin-preview-table input").prop("checked", false);
+                        populatePreviewTable();
+                    })
+                    .fail(function() { alert("There was an internal issue submitting the form.") });
+            }
+
         </script>
     </head>
 
@@ -134,11 +174,18 @@
             <?php include "instance/admin-header.html" ?>
             <div>
                 <section id="admin-product-controls">
-                    <button onclick="navigation('form-add-product.php')">Create Product</button>
-                    <button onclick="clickEditProduct()">Edit Product</button>
-                    <button>Archive Selected</button>
+                    <div>
+                        <button onclick="navigation('form-add-product.php')">Create Product</button>
+                        <button onclick="clickEditProduct()">Edit Product</button>
+                        <button onclick="clickArchiveProduct(true)">Archive Selected</button>
+                        <button onclick="clickArchiveProduct(false)">Un-Archive Selected</button>
+                        <button>Delete Product</button>
+                    </div>
+                    <button onclick="navigation('page-home-admin.php')">Return</button>
                 </section>
                 <section id="admin-product-preview">
+                    <dialog class="admin-form-confirmation" closedby="closerequest">
+                    </dialog>
                     <div>
                         <label id="admin-product-filter-label">Search Filter</label>
                         <input id="admin-product-filter" type="search" name="product-filter" placeholder="eg. Apple" pattern="^[A-Za-z_ ]+$" aria-labelledby="admin-product-filter-label"></input>

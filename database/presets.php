@@ -63,4 +63,12 @@ function db_update_product(int $id, string $category, string $description, float
     $stmt->execute();
 }
 
+function db_archive_product(int $id, bool $archived) {
+    $stmt = pdo()->prepare("UPDATE products SET is_archived = :archived WHERE products.product_id = :id");
+    $stmt->bindParam(":id", $id, PDO::PARAM_INT);
+    $stmt->bindParam(":archived", $archived, PDO::PARAM_BOOL);
+
+    $stmt->execute();
+}
+
 ?>
