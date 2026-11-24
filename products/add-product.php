@@ -105,14 +105,14 @@ function packProductQuery(array $request) {
     $obj["product-category"] = $request["product-category"] ?? "";
     $obj["product-description"] = $request["product-description"] ?? "";
 
-    $obj["product-price"] = $request["product-price"] ?? 0.00;
-    $obj["product-quantity"] = $request["product-quantity"] ?? 0.00;
-    $obj["product-stock"] = $request["product-stock"] ?? 0.00;
-    $obj["product-reserved"] = $request["product-reserved"] ?? 0.00;
+    $obj["product-price"] = (float) ($request["product-price"] ?? 0.00);
+    $obj["product-quantity"] = (float) ($request["product-quantity"] ?? 0.00);
+    $obj["product-stock"] = (float) ($request["product-stock"] ?? 0.00);
+    $obj["product-reserved"] = (float) ($request["product-reserved"] ?? 0.00);
     $obj["product-unit"] = $request["product-unit"] ?? "";
 
     $obj["product-freshness"] = $request["product-freshness"] ?? date_create('now', timezone_open("EST"))->add(new DateInterval('P7D'))->format("Y-m-d");
-    $obj["product-spoil"] = $request["product-spoil"] ?? $obj["product-price"];
+    $obj["product-spoil"] = (float) ($request["product-spoil"] ?? $obj["product-price"]);
 
     return $obj;
 }
