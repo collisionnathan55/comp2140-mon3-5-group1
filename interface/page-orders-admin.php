@@ -483,6 +483,9 @@ function escapeHTML($value) {
             </a>
 
             <h2>Make Order</h2>
+            <p>
+    <a href="page-edit-order.php">Edit an Existing Order</a>
+</p>
 
             <?php if ($message !== ""): ?>
 

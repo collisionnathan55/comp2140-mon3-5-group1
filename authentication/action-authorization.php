@@ -13,7 +13,7 @@ function authorizePage(string $pageName) {
         "page-home-admin.php",
         "page-products-admin.php",
         "page-orders-admin.php",
-
+        "page-edit-order.php",
         "form-add-product.php"
     ];
 
