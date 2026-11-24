@@ -1,4 +1,4 @@
-<?php require "../database/presets.php" ?>
+<?php require_once "../database/query-presets.php" ?>
 
 <?php
 

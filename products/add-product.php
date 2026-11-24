@@ -1,4 +1,4 @@
-<?php require "get-products.php" ?>
+<?php require_once "get-products.php" ?>
 
 <?php
 
@@ -51,6 +51,50 @@ function toggleArchiveProduct(int $id, bool $archive) {
     }
 }
 
+function reduceProductStock(int $id, float $reduceStockBy, float $reduceReservesBy = 0) {
+    $product = getProductbyId($id);
+
+    if ($product == null) {
+        return false;
+    }
+
+    $newReserve = $product["reserved_quantity"] - $reduceReservesBy;
+    if ($newReserve < 0) {
+        return false;
+    }
+
+    $newStock = $product["stock_quantity"] - $reduceStockBy;
+    if ($newStock < $newReserve) {
+        return false;
+    }
+
+    try {
+        db_update_product_stock($id, $newStock, $newReserve);
+    }
+    catch (Exception $e) {
+        return false;
+    }
+
+    return true;
+}
+
+// remove
+
+function deleteProduct(int $id) {
+    require_once "../orders/resolve-orders.php";
+    echo "hi1";
+
+    $related_orders = getOrderItemsByProduct($id);
+    foreach ($related_orders as $order) {
+        if (isLiveOrder($order["order_id"])) {
+            cancelOrder($order["order_id"]);
+        }
+        deleteOrder($order["order_id"]);
+    }
+
+    db_delete_product($id);
+}
+
 // utils
 
 function packProductQuery(array $request) {
@@ -96,12 +140,13 @@ function productConfirmationRequest(array $packed_product) {
         $packed_product["product-stock"], $packed_product["product-unit"]
     );
 }
-function productRemovalConfirmationRequest(array $ids, string $method) {
+function productRemovalConfirmationRequest(array $ids, string $method, string $extra = "") {
     $html = <<<EOT
     <div>
         <h1>Confirmation Request</h1>
         <p>Please confirm the %s of the following products:</p>
         %s
+        <p>%s</p>
     </div>
     <form method="dialog">
         <button onclick="confirmRemovalSubmission()">Confirm</button>
@@ -118,6 +163,6 @@ function productRemovalConfirmationRequest(array $ids, string $method) {
     }
     $products .= "</ul>";
 
-    return sprintf($html, $method, $products);
+    return sprintf($html, $method, $products, $extra);
 }
 ?>

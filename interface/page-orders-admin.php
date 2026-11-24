@@ -535,7 +535,8 @@ function escapeHTML($value) {
                         name="customer_phone"
                         maxlength="20"
                         required
-                        placeholder="Enter customer phone number"
+                        placeholder="Enter customer phone number. eg. 876-123-1234"
+                        pattern="^\d{3}-\d{3}-\d{4}$"
                     >
 
                 </section>

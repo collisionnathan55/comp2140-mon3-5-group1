@@ -48,7 +48,7 @@ $response["status"] = "ok";
 $admin_actions = [
     "add-product", "confirm-product", "edit-product",
     "get-products-all",
-    "archive-products", "confirm-product-removal"
+    "archive-products", "delete-products", "confirm-product-removal"
 ];
 if (in_array($attempt, $admin_actions) && !isAdmin()) {
     $response["alert"] = "You don't have the permissions to attempt this.";
@@ -173,10 +173,34 @@ switch ($attempt) {
         $response["status"] = "confirmation";
         $response["html"] = productRemovalConfirmationRequest($_GET["ids"], $_GET["set"] == "true" ? "archiving" : "unarchiving");
         break;
+    case "delete-products":
+        include "../products/add-product.php";
+        include "../orders/get-orders.php";
+
+        if (!isset($_GET["ids"])) {
+            $response["status"] = "error";
+            break;
+        }
+
+        if (!is_array($_GET["ids"])) {
+            $_GET["ids"] = [$_GET["ids"]];
+        }
+
+        $orders_affected = 0;
+        foreach ($_GET["ids"] as $id) {
+            $orders_affected += count(getOrdersByProduct($id));
+        }
+
+        storeFormRequest($_GET);
+        $response["status"] = "confirmation";
+        $response["html"] = productRemovalConfirmationRequest(
+            $_GET["ids"], "permanent removal",
+            "<p>This will permanently delete (and cancel) " . $orders_affected . " order(s) using this product.</p>"
+        );
+        break;
     case "confirm-product-removal":
         include "../products/add-product.php";
         $query = getFormRequest();
-        $response["alert"] = $query["attempt"];
 
         switch ($query["attempt"]) {
             case "archive-products":
@@ -184,8 +208,14 @@ switch ($attempt) {
                     toggleArchiveProduct($id, $query["set"] == "true");
                 }
             break;
+            case "delete-products":
+                foreach ($query["ids"] as $id) {
+                    deleteProduct((int) $id);
+                }
+            break;
         }
 
+        discardFormRequest();
         break;
     //
     }

@@ -174,22 +174,22 @@
                         <div>
                             <label id="product-label-quantity">Quantity per Sale</label>
                             <input id="product-create-quantity" type="number" name="product-quantity" aria-labelledby="product-label-quantity" placeholder="0" step="0.1" min="0" required></input>
-                            <p>The quantity sold per purchase of the item.</p>
+                            <p>The quantity of stock sold per purchase of the item.</p>
                         </div>
                         <div>
                             <label id="product-label-unit">Unit</label>
                             <input id="product-create-unit" type="text" name="product-unit" aria-labelledby="product-label-unit" value="Item" pattern="^[A-Za-z\-]+$" required></input>
-                            <p>The unit of measurement for the item.</p>
+                            <p>The unit of measurement for the stock of the item.</p>
                         </div>
                         <div>
                             <label id="product-label-stock">Stock</label>
                             <input id="product-create-stock" type="number" name="product-stock" aria-labelledby="product-label-stock" placeholder="0" step="0.1" min="0"></input>
-                            <p>The amount of current stock of the item.</p>
+                            <p>The amount of current individual stock of the item.</p>
                         </div>
                         <?php if ($edit) {
                         echo '<div><label id="product-label-reserved">Reserved Stock</label>';
                         echo '<input id="product-create-reserved" type="number" name="product-reserved" aria-labelledby="product-label-reserved" placeholder="0" step="0.1" min="0" readonly></input>';
-                        echo '<p>The amount of stock reserved by customers for the item.</p></div>';
+                        echo '<p>The amount of individual stock reserved by customers for the item.</p></div>';
                     } ?>
                     </section>
                     <section>
