@@ -99,15 +99,15 @@ CREATE TABLE IF NOT EXISTS order_items (
 
 CREATE TABLE IF NOT EXISTS action_logs (
     log_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NULL,
+    -- user_id INT NULL,
     action VARCHAR(100) NOT NULL,
     description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     KEY idx_action_created_at (created_at),
 
-    CONSTRAINT fk_action_logs_user
-        FOREIGN KEY (user_id)
-        REFERENCES users(user_id)
-        ON DELETE SET NULL
+    -- CONSTRAINT fk_action_logs_user
+    --     FOREIGN KEY (user_id)
+    --     REFERENCES users(user_id)
+    --     ON DELETE SET NULL
 ) ENGINE=InnoDB;

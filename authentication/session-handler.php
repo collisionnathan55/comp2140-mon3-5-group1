@@ -27,8 +27,8 @@ function forceSessionData()
     session_name("yaad-sesh");
     $sessionFlags = [
         "cookie_samesite" => "Strict",
-        "cookie_lifetime" => 1800,   
-        // 30 minutes of inactivity?
+        "cookie_lifetime" => 1200,   
+        // 20 minutes of inactivity?
         "cookie_secure" => 1,
         "cookie_httponly" => 1
     ];

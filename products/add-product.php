@@ -15,7 +15,7 @@ function packProductQuery(array $request) {
     return $obj;
 }
 
-function validateProduct(array $packed_product) {
+function validateProduct(array $packed_product, bool $edit) {
     $errorMessages = [];
 
     // fill with data once database is up
@@ -32,7 +32,7 @@ function productConfirmationRequest(array $packed_product) {
     <div>
         <h1>Confirmation Request</h1>
         <p>
-            Please confirm the creation of <b>%s (%s)</b> set to self-expire in %d day(s) on %s. It will be sold at $%d per %d %s(s). There are %d %s(s) in currently stock.
+            Please confirm <b>%s (%s)</b> set to self-expire in %d day(s) on %s. It will be sold at $%d per %d %s(s). There are %d %s(s) in currently stock.
         </p>
     </div> 
     <form method="dialog">
@@ -50,5 +50,9 @@ function productConfirmationRequest(array $packed_product) {
         $packed_product["product-price"], $packed_product["product-quantity"], $packed_product["product-unit"],
         $packed_product["product-stock"], $packed_product["product-unit"]
     );
+}
+
+function createProduct($packed_product) {
+
 }
 ?>

@@ -55,10 +55,11 @@ if (in_array($attempt, $admin_actions) && !isAdmin()) {
 
 switch ($attempt) {
     case "add-product":
+    case "edit-product":
         include "../products/add-product.php";
 
         $product = packProductQuery($_POST);
-        $messages = validateProduct($product);
+        $messages = validateProduct($product, $attempt == "edit-product");
 
         if (count($messages) > 0) {
             $response["status"] = "invalid-input";
@@ -72,12 +73,13 @@ switch ($attempt) {
         $response["status"] = "confirmation";
         $response["html"] = productConfirmationRequest($product);
         break;
+
     case "confirm-product":
         include "../products/add-product.php";
         
         $query = getFormRequest();
         $product = packProductQuery($query);
-        $messages = validateProduct($product);
+        $messages = validateProduct($product, true);
 
         if (count($messages) > 0) {
             $response["status"] = "error";
