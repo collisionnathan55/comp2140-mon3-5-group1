@@ -92,6 +92,16 @@
         <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
         <script src="admin-master.js"></script>
         <script type="text/javascript">
+            const tableQueryColumns = ["product_id", "display_name", "display_category", "is_available", "original_price", "stock_quantity", "reserved_quantity", "unit_of_measure", "expiration_date"];
+            const tableDisplayColumns = ["ID", "Name", "Category", "Availabile", "Price", "Stock", "Reserved Stock", "Unit", "Expiration"];
+
+            function populateSortingOptions() {
+                var html = "";
+                tableDisplayColumns.forEach(o => {
+                    html += "<option value=\"" + o + "\">" + o + "</option>"
+                })
+                jQuery("#admin-product-sorting").html(html);
+            }
 
             function populatePreviewTable() {
                 jQuery.get("../authentication/action-authorization.php?attempt=get-products-all")
@@ -99,42 +109,57 @@
                         var json = jQuery.parseJSON(response);
                         var products = json.dataList;
 
-                        jQuery(".admin-preview-table").html(
-                            createTableFromArrays(products, 
-                            ["product_id", "display_name", "display_category", "is_available", "original_price", "stock_quantity", "reserved_quantity", "unit_of_measure", "expiration_date"], 
-                            ["ID", "Name", "Category", "Availabile", "Price", "Stock", "Reserved Stock", "Unit", "Expiration"]
-                        ));
+                        jQuery(".admin-preview-table").html(createTableFromArrays(filterAndSort(products), tableQueryColumns, tableDisplayColumns));
                     })
                     .fail(function(response) { console.log("Issue getting products");
                      });
             }
-            populatePreviewTable();
 
-            function filterTable(filterBy) {
-                var filter = filterBy.toLowerCase()
+            function filterAndSort(products) {
+                var filteredProducts = [];
+                var filter = jQuery("#admin-product-filter").val().toLowerCase();
 
-                jQuery(".admin-preview-table tr").get().forEach(row => {
-                    var query = jQuery(row);
-                    if (query.find("th").get() == 0) {
-                        query.hide();
-
-                        var category = query.find("#display_category").text().toLowerCase();
-                        var name = query.find("#display_name").text().toLowerCase();
-                        
-                        var available = query.find("#is_available").html().split("<br>");
-                        var availabilityMatch = false
-                        available.forEach(a => {
-                            if (a.toLowerCase() == filter) {
-                                availabilityMatch = true;
-                            }
-                        })
-
-                        // starts with filter
-                        if (category.indexOf(filter) == 0 || name.indexOf(filter) == 0 || availabilityMatch) {
-                            query.show();
+                products.forEach(p => {
+                    var category = p["display_category"].toLowerCase();
+                    var name = p["display_name"].toLowerCase();
+                    
+                    var available = p["is_available"].split("<br>");
+                    var availabilityMatch = false
+                    available.forEach(a => {
+                        if (a.toLowerCase() == filter) {
+                            availabilityMatch = true;
                         }
+                    })
+
+                    // starts with filter
+                    if (category.indexOf(filter) == 0 || name.indexOf(filter) == 0 || availabilityMatch) {
+                        filteredProducts.push(p);
                     }
+                });
+
+                var sorting = tableQueryColumns[tableDisplayColumns.indexOf(jQuery("#admin-product-sorting").val())];
+
+                filteredProducts.sort(function(a, b) {
+                    var sortA = Number.parseFloat(a[sorting]);
+                    sortA = Number.isNaN(sortA) ? a[sorting] : sortA
+                    
+                    var sortB = Number.parseFloat(b[sorting]);
+                    sortB = Number.isNaN(sortB) ? b[sorting] : sortB
+
+                    if (sortA < sortB) {
+                        return -1;
+                    }
+                    if (sortA > sortB) {
+                        return 1;
+                    }
+
+                    return 0;
                 })
+                if (jQuery("#admin-product-sorting-asc").val() == "1") {
+                    filteredProducts.reverse();
+                }
+
+                return filteredProducts;
             }
 
             // Button events
@@ -214,6 +239,13 @@
                     .fail(function() { alert("There was an internal issue deleting the products.") });
             }
 
+            // document load
+
+            jQuery().ready(function(event) {
+                populateSortingOptions();
+                populatePreviewTable();
+            })
+
         </script>
     </head>
 
@@ -240,11 +272,12 @@
                     </dialog>
                     <div>
                         <label id="admin-product-filter-label">Search Filter</label>
-                        <input 
-                            id="admin-product-filter" type="search" name="product-filter" 
-                            placeholder="eg. Apple. eg. Archived" pattern="^[A-Za-z_ ]+$" aria-labelledby="admin-product-filter-label"
-                            onkeyup="filterTable(this.value)"
-                        ></input>
+                        <input id="admin-product-filter" type="search" name="product-filter" placeholder="eg. Apple. eg. Archived" pattern="^[A-Za-z_ ]+$" aria-labelledby="admin-product-filter-label" onkeyup="populatePreviewTable()"></input>
+                        <select id="admin-product-sorting" onchange="populatePreviewTable()"></select>
+                        <select id="admin-product-sorting-asc" onchange="populatePreviewTable()">
+                            <option value="0">Ascending</option>
+                            <option value="1">Descending</option>
+                        </select>
                     </div>
                     <table class="admin-preview-table">
 
