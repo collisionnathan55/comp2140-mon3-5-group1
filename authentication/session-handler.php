@@ -29,7 +29,7 @@ function forceSessionData()
         "cookie_samesite" => "Strict",
         "cookie_lifetime" => 1200,   
         // 20 minutes of inactivity?
-        "cookie_secure" => 1,
+        "cookie_secure" => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'),
         "cookie_httponly" => 1
     ];
 

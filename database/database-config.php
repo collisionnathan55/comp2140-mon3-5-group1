@@ -1,8 +1,10 @@
 
 <?php
+
 function pdo()
 {
-    $env = parse_ini_file(dirname(__DIR__) . '../.env');
+    $envPath = dirname(__DIR__) . '/.env';
+    $env = parse_ini_file($envPath);
 
     if ($env === false) {
         throw new RuntimeException("Could not load the .env file.");
@@ -14,9 +16,8 @@ function pdo()
     $user = $env['DB_USER'] ?? 'root';
     $password = $env['DB_PASSWORD'] ?? '';
 
-    $pdo = null;
     try {
-        $pdo = new PDO(
+        return new PDO(
             "mysql:host=$host;port=$port;dbname=$name;charset=utf8mb4",
             $user,
             $password,
@@ -26,12 +27,11 @@ function pdo()
                 PDO::ATTR_EMULATE_PREPARES => false
             ]
         );
+
     } catch (PDOException $e) {
         error_log($e->getMessage());
         throw new RuntimeException("Database connection failed.");
     }
-
-    return $pdo;
 }
 
 ?>

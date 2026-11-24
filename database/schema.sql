@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS products (
     
     unit_of_measure VARCHAR(20) NOT NULL DEFAULT 'item',
 
-    expiration_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    expiration_date DATE NOT NULL DEFAULT (CURRENT_DATE),
     stale_price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
 
     -- Internal Fields
