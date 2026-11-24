@@ -113,6 +113,27 @@ main {
     width: 90%;
 }
 
+.admin-form-confirmation {
+    padding: 1rem;
+    width: 40%;
+}
+.admin-form-confirmation h1 {
+    padding-bottom: 0.5vmax;
+}
+.admin-form-confirmation p {
+    padding-bottom: 1vmax;
+}
+.admin-form-confirmation form {
+    padding-top: 1vmax;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 5%;
+}
+
+/* Responsiveness */
+
 @media (max-width: 768px) {
     .admin-form-grid section {
         width: 100%;

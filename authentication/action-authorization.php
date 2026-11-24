@@ -1,10 +1,5 @@
 <?php require "session-handler.php" ?>
 
-<?php 
-    // Logic Layer interfaces
-    include "../products/add-product.php" 
-?>
-
 <?php
 /* 
     This file handles the requests for lower layer actions
@@ -36,11 +31,11 @@ function authorizePage(string $pageName) {
 
 <?php
 
-if (!isset($_POST["attempt"])) {
+if (!isset($_GET["attempt"])) {
     return;
 }
 
-$attempt = $_POST["attempt"];
+$attempt = $_GET["attempt"];
 $response = [
     "status" => "ok",
     "alert" => null,
@@ -49,7 +44,9 @@ $response = [
 
 $response["status"] = "ok";
 
-$admin_actions = ["add-product", "edit-product"];
+$admin_actions = [
+    "add-product", "confirm-product", "edit-product"
+];
 if (in_array($attempt, $admin_actions) && !isAdmin()) {
     $response["alert"] = "You don't have the permissions to attempt this.";
     echo json_encode($response);
@@ -58,15 +55,39 @@ if (in_array($attempt, $admin_actions) && !isAdmin()) {
 
 switch ($attempt) {
     case "add-product":
-        $messages = validateProduct($_POST);
+        include "../products/add-product.php";
 
-        if (!isset($_POST["submission-confirmation"])) {
-            storeFormRequest($_POST);
-            $response["status"] = "confirmation";
-            $response["html"] = productConfirmationRequest($_POST);
+        $product = packProductQuery($_POST);
+        $messages = validateProduct($product);
+
+        if (count($messages) > 0) {
+            $response["status"] = "invalid-input";
+            foreach ($messages as $m) {
+                $response["alert"] .= "\n" . $m;
+            }
             break;
         }
 
+        storeFormRequest($_POST);
+        $response["status"] = "confirmation";
+        $response["html"] = productConfirmationRequest($product);
+        break;
+    case "confirm-product":
+        include "../products/add-product.php";
+        
+        $query = getFormRequest();
+        $product = packProductQuery($query);
+        $messages = validateProduct($product);
+
+        if (count($messages) > 0) {
+            $response["status"] = "error";
+            $response["alert"] = "There was an issue with saving the product";
+            break;
+        }
+
+        $response["status"] = "form-ok";
+        $response["alert"] = "Successfully saved product.";
+        // save to database
         break;
 }
 
