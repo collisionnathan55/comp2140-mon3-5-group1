@@ -56,6 +56,23 @@
                     .done((response) => formResponse(response))
                     .fail(function() { alert("There was an internal issue submitting the form.") });
             }
+
+            function populateCategories() {
+                jQuery.get("../authentication/action-authorization.php?attempt=get-products-categories")
+                    .done(function(response) {
+                        var json = jQuery.parseJSON(response);
+                        var categories = json.dataList;
+
+                        var catOptions = "";
+                        categories.forEach(c => {
+                            catOptions += "<option value=\"" + c + "\"/>";
+                        })
+                        jQuery("#product-system-category").html(catOptions);
+                    })
+                    .fail(function(response) { console.log("Issue getting product categories");
+                     });
+            }
+            populateCategories();
         </script>
     </head>
 

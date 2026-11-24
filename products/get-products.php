@@ -7,15 +7,18 @@ function getAllProducts() {
 }
 
 function isAvailable(array $product) {
-    if (!isset($product["stock_quantity"]) || !isset($product["reserved_quantity"]) || !isset($product["is_archived"])) {
+    if (!isset($product["stock_quantity"]) || !isset($product["reserved_quantity"]) || !isset($product["is_archived"]) || !isset($product["expiration_date"])) {
         return false;
     }
 
     $stock = $product["stock_quantity"];
     $reserved = $product["reserved_quantity"];
     $archived = $product["is_archived"];
+    
+    $expiration = date_create($product["expiration_date"], timezone_open("EST"));
+    $today = date_create('now', timezone_open("EST"));
 
-    if ($stock > 0 && $stock > $reserved && !$archived) {
+    if ($stock > 0 && $stock > $reserved && !$archived && $expiration > $today) {
         return true;
     }
 
@@ -63,7 +66,7 @@ function getProductNames() {
     return $names;
 }
 
-function allProductCategories() {
+function getProductCategories() {
     $names = [];
     $ps = getAllProducts();
     foreach ($ps as $p) {

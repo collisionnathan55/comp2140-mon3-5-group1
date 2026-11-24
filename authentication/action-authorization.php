@@ -108,6 +108,10 @@ switch ($attempt) {
         
         $response["dataList"] = $products;
         break;
+    case "get-products-categories":
+        include "../products/get-products.php";
+        $response["dataList"] = getProductCategories();
+        break;
 }
 
 echo json_encode($response);
