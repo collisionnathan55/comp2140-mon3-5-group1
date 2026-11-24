@@ -89,7 +89,8 @@ switch ($attempt) {
 
         $response["status"] = "form-ok";
         $response["alert"] = "Successfully saved product.";
-        // save to database
+
+        createProduct($product);
         break;
 }
 

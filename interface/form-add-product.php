@@ -5,6 +5,8 @@
     }
 
     $editID = (isset($_GET["nav-query"]) ? $_GET["nav-query"] : null);
+
+    include_once "../database/presets.php";
 ?>
 
 <!DOCTYPE html>
@@ -81,45 +83,45 @@
                         </div>
                         <div>
                             <label id="product-label-name">Display Name</label>
-                            <input id="product-create-name" type="text" name="product-name" aria-labelledby="product-label-name" placeholder="eg. Gala Apple" pattern="^[A-Za-z ]+$"></input>
+                            <input id="product-create-name" type="text" name="product-name" aria-labelledby="product-label-name" placeholder="eg. Gala" pattern="^[A-Za-z ]+$" required></input>
                             <p>The <strong>unique</strong>, displayed name identifier of the item.</p>
                         </div>
                         <div class="form-item-description">
                             <label id="product-label-description">Description</label>
-                            <textarea id="product-create-description" name="product-description" aria-labelledby="product-label-description"></textarea>
+                            <textarea id="product-create-description" name="product-description" aria-labelledby="product-label-description" required></textarea>
                         </div>
                     </section>
                     <div>
                         <label id="product-label-price">Price</label>
-                        <input id="product-create-price" type="number" name="product-price" aria-labelledby="product-label-price" placeholder="0"></input>
+                        <input id="product-create-price" type="number" name="product-price" aria-labelledby="product-label-price" placeholder="0" step="0.01" min="0" required></input>
                         <p>The price in Jamaican dollars of the item.</p>
                     </div>
                     <section>
                         <div>
                             <label id="product-label-quantity">Quantity per Sale</label>
-                            <input id="product-create-quantity" type="number" name="product-quantity" aria-labelledby="product-label-quantity" placeholder="0"></input>
+                            <input id="product-create-quantity" type="number" name="product-quantity" aria-labelledby="product-label-quantity" placeholder="0" step="0.1" min="0" required></input>
                             <p>The quantity sold per purchase of the item.</p>
                         </div>
                         <div>
                             <label id="product-label-unit">Unit</label>
-                            <input id="product-create-unit" type="text" name="product-unit" aria-labelledby="product-label-unit" value="Item" pattern="^[A-Za-z\-]+$"></input>
+                            <input id="product-create-unit" type="text" name="product-unit" aria-labelledby="product-label-unit" value="Item" pattern="^[A-Za-z\-]+$" required></input>
                             <p>The unit of measurement for the item.</p>
                         </div>
                         <div>
                             <label id="product-label-stock">Stock</label>
-                            <input id="product-create-stock" type="number" name="product-stock" aria-labelledby="product-label-stock" placeholder="0"></input>
+                            <input id="product-create-stock" type="number" name="product-stock" aria-labelledby="product-label-stock" placeholder="0" step="0.1" min="0"></input>
                             <p>The amount of current stock of the item.</p>
                         </div>
                     </section>
                     <section>
                         <div>
                             <label id="product-label-freshness">Best Sold By</label>
-                            <input id="product-create-freshness" type="date" name="product-freshness" id="product-label-freshness"></input>
+                            <input id="product-create-freshness" type="date" name="product-freshness" id="product-label-freshness" required></input>
                             <p>The date which the item may start becoming stale / spoilled.</p>
                         </div>
                         <div>
                             <label id="product-label-spoil">After 'Best Sold By' Price</label>
-                            <input id="product-create-spoil" type="number" name="product-spoil" aria-labelledby="product-label-spoil" placeholder="0"></input>
+                            <input id="product-create-spoil" type="number" name="product-spoil" aria-labelledby="product-label-spoil" placeholder="0" step="0.01" min="0"></input>
                             <p>The price in Jamaican dollars which the item sells for within three (3) days of expiration.</p>
                         </div>
                     </section>

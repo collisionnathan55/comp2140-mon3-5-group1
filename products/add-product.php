@@ -1,16 +1,20 @@
+<?php require "get-products.php" ?>
+
 <?php
 
 function packProductQuery(array $request) {
     $obj = [];
     $obj["product-name"] = $request["product-name"] ?? "";
     $obj["product-category"] = $request["product-category"] ?? "";
+    $obj["product-description"] = $request["product-description"] ?? "";
 
-    $obj["product-price"] = $request["product-price"] ?? 0;
-    $obj["product-quantity"] = $request["product-quantity"] ?? 0;
+    $obj["product-price"] = $request["product-price"] ?? 0.00;
+    $obj["product-quantity"] = $request["product-quantity"] ?? 0.00;
     $obj["product-unit"] = $request["product-unit"] ?? "";
-    $obj["product-stock"] = $request["product-stock"] ?? 0;
+    $obj["product-stock"] = $request["product-stock"] ?? 0.00;
 
-    $obj["product-freshness"] = $request["product-freshness"] ?? "";
+    $obj["product-freshness"] = $request["product-freshness"] ?? date_create('now', timezone_open("EST"))->add(new DateInterval('P7D'))->format("Y-m-d");
+    $obj["product-spoil"] = $request["product-spoil"] ?? $obj["product-price"];
 
     return $obj;
 }
@@ -18,11 +22,14 @@ function packProductQuery(array $request) {
 function validateProduct(array $packed_product, bool $edit) {
     $errorMessages = [];
 
-    // fill with data once database is up
-
-    // check for unique product ID
-
-    // send messages for client into error messages
+    if (!isset($packed_product["product-name"]) || $packed_product["product-name"] == "") {
+        array_push($errorMessages, "Display name required.");
+    }
+    if (isset($packed_product["product-name"])) {
+        if (!$edit && in_array($packed_product["product-name"], getProductNames())) {
+            array_push($errorMessages, $packed_product["product-name"] . " already exists.");
+        }
+    }
 
     return $errorMessages;
 }
@@ -32,7 +39,7 @@ function productConfirmationRequest(array $packed_product) {
     <div>
         <h1>Confirmation Request</h1>
         <p>
-            Please confirm <b>%s (%s)</b> set to self-expire in %d day(s) on %s. It will be sold at $%d per %d %s(s). There are %d %s(s) in currently stock.
+            Please confirm <b>%s (%s)</b> set to self-expire in %d day(s) on %s. It will be sold at $%.2f per %.2f %s(s). There are %.2f %s(s) in currently stock.
         </p>
     </div> 
     <form method="dialog">
@@ -52,7 +59,12 @@ function productConfirmationRequest(array $packed_product) {
     );
 }
 
-function createProduct($packed_product) {
-
+function createProduct(array $p) {
+    try {
+        db_add_product($p["product-category"], $p["product-name"], $p["product-description"], $p["product-price"], $p["product-quantity"], $p["product-stock"], $p["product-unit"], $p["product-freshness"], $p["product-spoil"]);
+    }
+    catch(Exception $e) {
+        throw new RuntimeException("Failed to add product.");
+    }
 }
 ?>
