@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS action_logs (
     description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    KEY idx_action_created_at (created_at),
+    KEY idx_action_created_at (created_at)
 
     -- CONSTRAINT fk_action_logs_user
     --     FOREIGN KEY (user_id)
