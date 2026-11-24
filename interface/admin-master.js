@@ -39,7 +39,7 @@ function createTableFromArrays(a_arrays, columns, aliases = null) {
         table += "<td class=\"admin-preview-table-check\"><input type=\"checkbox\" name=\"" + row[Object.keys(row)[0]] + "\"/></td>"
         
         columns.forEach(c => {
-            table += "<td>" + row[c] + "</td>";
+            table += "<td id=\"" + c + "\">" + row[c] + "</td>";
         })
         table += "</tr>";
     })

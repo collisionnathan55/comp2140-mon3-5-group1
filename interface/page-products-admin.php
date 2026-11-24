@@ -110,6 +110,35 @@
             }
             populatePreviewTable();
 
+            function filterTable(filterBy) {
+                var filter = filterBy.toLowerCase()
+
+                jQuery(".admin-preview-table tr").get().forEach(row => {
+                    var query = jQuery(row);
+                    if (query.find("th").get() == 0) {
+                        query.hide();
+
+                        var category = query.find("#display_category").text().toLowerCase();
+                        var name = query.find("#display_name").text().toLowerCase();
+                        
+                        var available = query.find("#is_available").html().split("<br>");
+                        var availabilityMatch = false
+                        available.forEach(a => {
+                            if (a.toLowerCase() == filter) {
+                                availabilityMatch = true;
+                            }
+                        })
+
+                        // starts with filter
+                        if (category.indexOf(filter) == 0 || name.indexOf(filter) == 0 || availabilityMatch) {
+                            query.show();
+                        }
+                    }
+                })
+            }
+
+            // Button events
+
             function getSelectedProducts() {
                 var selected = [];
                 jQuery(".admin-preview-table tr").get().forEach(row => {
@@ -127,7 +156,6 @@
                     navigation('form-add-product.php', getSelectedProducts()[0]);
                 }
             }
-
             function clickArchiveProduct(archive) {
                 var selected = getSelectedProducts();
                 
@@ -212,7 +240,11 @@
                     </dialog>
                     <div>
                         <label id="admin-product-filter-label">Search Filter</label>
-                        <input id="admin-product-filter" type="search" name="product-filter" placeholder="eg. Apple" pattern="^[A-Za-z_ ]+$" aria-labelledby="admin-product-filter-label"></input>
+                        <input 
+                            id="admin-product-filter" type="search" name="product-filter" 
+                            placeholder="eg. Apple. eg. Archived" pattern="^[A-Za-z_ ]+$" aria-labelledby="admin-product-filter-label"
+                            onkeyup="filterTable(this.value)"
+                        ></input>
                     </div>
                     <table class="admin-preview-table">
 
