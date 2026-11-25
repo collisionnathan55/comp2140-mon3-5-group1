@@ -31,10 +31,17 @@ function authorizePage(string $pageName) {
         "page-home-admin.php",
         "page-products-admin.php",
         "page-orders-admin.php",
+        "page-order-details.php"
     ];
 
     if (in_array($pageName, $validLastPages)) {
-        $_SESSION["lastAuthenticatedPage"] = $pageName;
+        $page_link = $pageName;
+        $numq = 0;
+        foreach($_GET as $key => $value) {
+            $numq++;
+            $page_link .= ($numq == 1 ? "?" : "&") . $key . "=" . $value;
+        }
+        $_SESSION["lastAuthenticatedPage"] = $page_link;
     }
 
     return true;
@@ -254,6 +261,31 @@ switch ($attempt) {
         }
         
         $response["dataList"] = $orders;
+        break;
+    case "get-orders-phone":
+        include_once "../orders/get-orders.php";
+
+        if (!isset($_POST["order-phone-number"]) || !preg_match('/^\d{3}-\d{3}-\d{4}$/', $_POST["order-phone-number"])) {
+            $response["status"] = "error";
+            break;
+        }
+
+        $orders = getOrdersByPhone($_POST["order-phone-number"]);
+        $html = "<p>No orders with this phone number available.</p>";
+
+        if (count($orders) > 0) {
+            $html = "";
+
+            foreach($orders as $order) {
+                $customer = $order["customer_name"];
+                $date = date_create($order["order_date"], timezone_open("EST"));
+
+                $html .= "<div><p>" . $customer . "</p><p>" . $date->format("Y/m/d") . "</p><p>" . $order["order_status"] . "</p><button onclick='openOrderDetail(" . (int)$order["order_id"] . ", \"" . $_POST["order-phone-number"] . "\")'>Enter</button></div>";
+            }
+        }
+
+        $response["status"] = "select";
+        $response["html"] = $html;
         break;
     //
 

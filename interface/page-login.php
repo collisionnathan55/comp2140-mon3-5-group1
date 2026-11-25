@@ -20,7 +20,6 @@
                 margin-top: 5vh;
 
                 width: 50%;
-                height: 35vh;
 
                 display: flex;
                 flex-direction: column;
@@ -38,7 +37,7 @@
                 flex-direction: column;
 
                 align-items: start;
-                justify-content: space-between;
+                gap: 2rem;
             }
             #login-area > form > section {
                 width: 100%;

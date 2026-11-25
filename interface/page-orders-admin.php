@@ -174,7 +174,7 @@
 
             function clickOrderDetails() {
                 if (getSelectedOrders().length > 0) {
-                    navigation('page-order-details.php', getSelectedOrders()[0]);
+                    window.location.href = "page-order-details.php?id=" + getSelectedOrders()[0];
                 }
             }
             function clickEditOrder() {

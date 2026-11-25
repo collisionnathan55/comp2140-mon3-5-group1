@@ -139,12 +139,12 @@
                 <p>Browse our products and add them to your cart and finalize your order whenever you're ready. Find us on campus to pay and collect, or request delivery.</p>
                 <div>
                     <button>Browse all Products</button>
-                    <button>Make an Order</button>
+                    <button onclick="navigation('form-add-order.php')">Make an Order</button>
                 </div>
             </section>
             <small id="continue-blurb">
                 <p>Already have an order?</p>
-                <button>Track it here</button>
+                <button onclick="navigation('form-get-orders.php')">Track it here</button>
             </small>
         </main>
 
