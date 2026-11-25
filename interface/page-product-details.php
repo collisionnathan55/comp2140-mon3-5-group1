@@ -144,8 +144,8 @@
 
             <?php if (isAdmin()) {
                 require_once "../orders/get-orders.php";
-                echo "const relatedOrders = " . count(getOrdersByProduct($productID)) . ";";
-                $relatedOrderItems = getOrderItemsByProduct($productID);
+                $relatedOrderItems = filterLiveOrderItems(getOrderItemsByProduct($productID));
+                echo "const relatedOrders = " . count(filterLiveOrders(getOrdersByProduct($productID))) . ";";
                 $reservedStock = 0;
                 $totalStockPrice = 0;
                 foreach ($relatedOrderItems as $item) {

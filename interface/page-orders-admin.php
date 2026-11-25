@@ -1,731 +1,283 @@
-
 <?php
-
-require "../authentication/action-authorization.php";
-
-if (!authorizePage(basename(__FILE__))) {
-    exit();
-}
-
-require_once "../database/database-config.php";
-
-// Generate a CSRF token for this session.
-if (empty($_SESSION["order_csrf_token"])) {
-    $_SESSION["order_csrf_token"] = bin2hex(random_bytes(32));
-}
-
-$message = "";
-$messageType = "";
-$createdOrderID = null;
-
-
-// Handle order submission.
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-
-    try {
-
-        // Check the CSRF token.
-        if (
-            !isset($_POST["csrf_token"]) ||
-            !hash_equals(
-                $_SESSION["order_csrf_token"],
-                $_POST["csrf_token"]
-            )
-        ) {
-            throw new RuntimeException(
-                "Invalid form submission. Please refresh the page."
-            );
-        }
-
-        $customerName = trim($_POST["customer_name"] ?? "");
-        $customerPhone = trim($_POST["customer_phone"] ?? "");
-        $quantities = $_POST["quantities"] ?? [];
-
-        // Validate customer information.
-        if ($customerName === "" || strlen($customerName) > 150) {
-            throw new RuntimeException(
-                "Please enter a valid customer name."
-            );
-        }
-
-        if (
-            $customerPhone === "" ||
-            strlen($customerPhone) > 20
-        ) {
-            throw new RuntimeException(
-                "Please enter a valid customer phone number."
-            );
-        }
-
-        if (!is_array($quantities)) {
-            throw new RuntimeException(
-                "Invalid product selection."
-            );
-        }
-
-        // Remove products with no quantity selected.
-        $selectedProducts = [];
-
-        foreach ($quantities as $productID => $quantity) {
-
-            if (!ctype_digit((string)$productID)) {
-                throw new RuntimeException(
-                    "Invalid product selected."
-                );
-            }
-
-            if (
-                $quantity === "" ||
-                $quantity === null ||
-                (float)$quantity == 0
-            ) {
-                continue;
-            }
-
-            if (
-                !filter_var(
-                    $quantity,
-                    FILTER_VALIDATE_INT
-                ) ||
-                (int)$quantity < 1
-            ) {
-                throw new RuntimeException(
-                    "Product quantities must be whole numbers greater than zero."
-                );
-            }
-
-            $selectedProducts[(int)$productID] = (int)$quantity;
-        }
-
-        if (count($selectedProducts) === 0) {
-            throw new RuntimeException(
-                "Please select at least one product."
-            );
-        }
-
-        $db = pdo();
-
-        // Start a transaction so all order changes succeed together.
-        $db->beginTransaction();
-
-        $orderItems = [];
-        $totalCost = 0.00;
-
-        // Lock and check each selected product.
-        $productQuery = $db->prepare(
-            "SELECT
-                product_id,
-                display_name,
-                original_price,
-                sell_quantity,
-                stock_quantity,
-                reserved_quantity,
-                is_archived,
-                expiration_date
-             FROM products
-             WHERE product_id = :product_id
-             FOR UPDATE"
-        );
-
-        foreach ($selectedProducts as $productID => $saleQuantity) {
-
-            $productQuery->execute([
-                ":product_id" => $productID
-            ]);
-
-            $product = $productQuery->fetch();
-
-            if (!$product) {
-                throw new RuntimeException(
-                    "One of the selected products no longer exists."
-                );
-            }
-
-            if ((int)$product["is_archived"] === 1) {
-                throw new RuntimeException(
-                    $product["display_name"] . " is no longer available."
-                );
-            }
-
-            if ($product["expiration_date"] < date("Y-m-d")) {
-                throw new RuntimeException(
-                    $product["display_name"] . " has expired and cannot be ordered."
-                );
-            }
-
-            $price = (float)$product["original_price"];
-            $sellQuantity = (float)$product["sell_quantity"];
-
-            $stock = (float)$product["stock_quantity"];
-            $reserved = (float)$product["reserved_quantity"];
-
-            if ($sellQuantity <= 0 || $price < 0) {
-                throw new RuntimeException(
-                    "Invalid selling information for " .
-                    $product["display_name"] . "."
-                );
-            }
-
-            // Calculate the physical stock required.
-            $physicalStockRequired = $saleQuantity * $sellQuantity;
-
-            // Calculate stock that has not already been reserved.
-            $availableStock = $stock - $reserved;
-
-            if ($physicalStockRequired > $availableStock) {
-                throw new RuntimeException(
-                    "Not enough stock available for " .
-                    $product["display_name"] . "."
-                );
-            }
-
-            // The customer pays for each sale unit.
-            $subtotal = $saleQuantity * $price;
-
-            $totalCost += $subtotal;
-
-            $orderItems[] = [
-                "product_id" => $productID,
-                "product_name" => $product["display_name"],
-                "sale_quantity" => $saleQuantity,
-                "physical_quantity" => $physicalStockRequired,
-                "unit_price" => $price
-            ];
-        }
-
-        // Create the order.
-        $orderStatement = $db->prepare(
-            "INSERT INTO orders
-                (customer_name, customer_phone, total_cost, order_status)
-             VALUES
-                (:customer_name, :customer_phone, :total_cost, 'pending')"
-        );
-
-        $orderStatement->execute([
-            ":customer_name" => $customerName,
-            ":customer_phone" => $customerPhone,
-            ":total_cost" => $totalCost
-        ]);
-
-        $orderID = (int)$db->lastInsertId();
-
-        // Insert each order item and reserve its stock.
-        $itemStatement = $db->prepare(
-            "INSERT INTO order_items
-                (order_id, product_id, quantity, stored_unit_price)
-             VALUES
-                (:order_id, :product_id, :quantity, :unit_price)"
-        );
-
-        $reserveStatement = $db->prepare(
-            "UPDATE products
-             SET reserved_quantity = reserved_quantity + :quantity
-             WHERE product_id = :product_id"
-        );
-
-        foreach ($orderItems as $item) {
-
-            $itemStatement->execute([
-                ":order_id" => $orderID,
-                ":product_id" => $item["product_id"],
-                ":quantity" => $item["sale_quantity"],
-                ":unit_price" => $item["unit_price"]
-            ]);
-
-            $reserveStatement->execute([
-                ":quantity" => $item["physical_quantity"],
-                ":product_id" => $item["product_id"]
-            ]);
-        }
-
-        // Record the order creation in the action log.
-        $logStatement = $db->prepare(
-            "INSERT INTO action_logs (action, description)
-             VALUES (:action, :description)"
-        );
-
-        $logStatement->execute([
-            ":action" => "create_order",
-            ":description" => "Order #" . $orderID .
-                " created for customer " . $customerName . "."
-        ]);
-
-        // Save all changes.
-        $db->commit();
-
-        // Redirect to prevent duplicate submissions on refresh.
-        header(
-            "Location: page-orders-admin.php?created=" . $orderID
-        );
+    require "../authentication/action-authorization.php";
+    if (!authorizePage(basename(__FILE__))) {
         exit();
-
-    } catch (Throwable $e) {
-
-        if (isset($db) && $db->inTransaction()) {
-            $db->rollBack();
-        }
-
-        error_log($e->getMessage());
-
-        $message = $e instanceof RuntimeException
-            ? $e->getMessage()
-            : "The order could not be created. Please check the database and try again.";
-
-        $messageType = "error";
     }
-}
-
-
-// Display the successful order message.
-if (isset($_GET["created"]) && ctype_digit($_GET["created"])) {
-
-    $createdOrderID = (int)$_GET["created"];
-
-    $message = "Order #" . $createdOrderID .
-        " was successfully created.";
-
-    $messageType = "success";
-}
-
-
-// Retrieve products for the order form.
-try {
-
-    $db = pdo();
-
-    $productQuery = $db->query(
-        "SELECT
-            product_id,
-            display_name,
-            display_category,
-            original_price,
-            sell_quantity,
-            stock_quantity,
-            reserved_quantity,
-            unit_of_measure,
-            expiration_date,
-            (stock_quantity - reserved_quantity) AS available_stock
-         FROM products
-         WHERE is_archived = 0
-           AND expiration_date >= CURDATE()
-           AND sell_quantity > 0
-           AND (stock_quantity - reserved_quantity) >= sell_quantity
-         ORDER BY display_name ASC"
-    );
-
-    $products = $productQuery->fetchAll();
-
-} catch (Throwable $e) {
-
-    error_log($e->getMessage());
-
-    $products = [];
-
-    $message = "Products could not be loaded. Please check the database connection.";
-    $messageType = "error";
-}
-
-
-// HTML escaping helper.
-function escapeHTML($value) {
-    return htmlspecialchars(
-        (string)$value,
-        ENT_QUOTES,
-        "UTF-8"
-    );
-}
-
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Yaad Goods - Admin</title>
+        <link rel="icon" href="images/business-logo.png" type="image/png">
+        <link rel="stylesheet" href="master.css">
+        <link rel="stylesheet" href="admin-master.css">
 
-<head>
+        <style>
+            .admin > div {
+                width: 100%;
+                display: flex;
+                flex-direction: row;
 
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Yaad Goods - Make Order</title>
-
-    <link rel="icon" href="images/business-logo.png" type="image/png">
-    <link rel="stylesheet" href="master.css">
-    <link rel="stylesheet" href="admin-master.css">
-
-    <style>
-
-        .order-container {
-            width: 100%;
-            max-width: 1100px;
-            margin: 0 auto;
-        }
-
-        .order-container h2 {
-            margin-bottom: 1rem;
-        }
-
-        .order-form-section {
-            background: white;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            border: 1px solid #ccc;
-        }
-
-        .order-form-section label {
-            display: block;
-            margin-bottom: 0.4rem;
-            font-weight: bold;
-        }
-
-        .order-form-section input {
-            width: 100%;
-            padding: 0.7rem;
-            margin-bottom: 1rem;
-            box-sizing: border-box;
-        }
-
-        .order-product-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-        }
-
-        .order-product-table th,
-        .order-product-table td {
-            border: 1px solid #ccc;
-            padding: 0.7rem;
-            text-align: left;
-        }
-
-        .order-product-table th {
-            background: #005C32;
-            color: white;
-        }
-
-        .order-quantity {
-            width: 85px;
-            padding: 0.4rem;
-        }
-
-        .order-total {
-            font-size: 1.4rem;
-            font-weight: bold;
-            text-align: right;
-            margin-top: 1.5rem;
-        }
-
-        .order-message {
-            padding: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .order-success {
-            background: #d8f3dc;
-            border: 1px solid #2d6a4f;
-            color: #1b4332;
-        }
-
-        .order-error {
-            background: #ffe0e0;
-            border: 1px solid #b00020;
-            color: #800000;
-        }
-
-        .order-buttons {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-            margin-top: 1.5rem;
-        }
-
-        .order-buttons button,
-        .order-buttons a {
-            padding: 0.8rem 1.2rem;
-            cursor: pointer;
-        }
-
-        .order-back-link {
-            display: inline-block;
-            margin-bottom: 1rem;
-        }
-
-        @media (max-width: 700px) {
-
-            .order-product-table {
-                font-size: 0.85rem;
+                flex-grow: 1;
             }
 
-            .order-product-table th,
-            .order-product-table td {
-                padding: 0.4rem;
+            #admin-order-controls {
+                width: 15vmax;
+                flex-grow: 1;
+
+                padding-right: 1vmax;
+
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                align-items: center;
+            }
+            #admin-order-controls > div {
+                width: 100%;
+
+                display: flex;
+                flex-direction: column;
+                justify-content: start;
+
+                gap: 2vmax;
+            }
+            #admin-order-controls button {
+                width: 100%;
             }
 
-        }
+            #admin-order-preview {
+                flex-grow: 1;
+                width: 100%;
 
-    </style>
+                padding-left: 1vmax;
+                border-style: solid;
+                border-width: 0em;
+                border-left-width: 0.1em;
+                border-color: darkgray;
 
-</head>
+                display: flex;
+                flex-direction: column;
+                justify-content: start;
+                align-items: center;
 
-<body>
+                gap: 2vmin;
+            }
+            #admin-order-preview > div {
+                width: 100%;
 
-    <header>
-        <?php require "instance/navigation-bar.html"; ?>
-    </header>
+                display: flex;
+                flex-direction: row;
 
-    <main class="admin">
+                align-items: start;
+                gap: 1vmax;
+            }
+            #admin-order-preview > div > button {
+                padding: 0.3em;
+                font-size: smaller;
+                border-width: 0.01em;
+            }
+            #admin-order-sorting, #admin-order-sorting-asc {
+                
+                height: 100%;
+            }
+            #admin-order-preview #admin-order-details {
+                padding-left: 2em;
+                padding-right: 2em;
+            }
+            #admin-order-preview input {
+                flex-grow: 1;
+            }
+        </style>
 
-        <?php include "instance/admin-header.html"; ?>
+        <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
+        <script src="admin-master.js"></script>
+        <script type="text/javascript">
+            const tableQueryColumns = ["order_id", "customer_name", "customer_phone", "order_status", "order_date", "related_products", "total_cost"];
+            const tableDisplayColumns = ["ID", "Name", "Phone Number", "Status", "Date Ordered", "Related Products", "Sub Total"];
 
-        <div class="order-container">
+            function populateSortingOptions() {
+                var html = "";
+                tableDisplayColumns.forEach(o => {
+                    html += "<option value=\"" + o + "\">" + o + "</option>"
+                })
+                jQuery("#admin-order-sorting").html(html);
+            }
 
-            <a class="order-back-link"
-               href="page-home-admin.php">
-                Back to Admin Dashboard
-            </a>
+            function populatePreviewTable() {
+                jQuery.get("../authentication/action-authorization.php?attempt=get-orders-all")
+                    .done(function(response) {
+                        var json = jQuery.parseJSON(response);
+                        var orders = json.dataList;
 
-            <h2>Make Order</h2>
-            <p>
-    <a href="page-edit-order.php">Edit an Existing Order</a>
-</p>
+                        jQuery(".admin-preview-table").html(createTableFromArrays(filterAndSort(orders), tableQueryColumns, tableDisplayColumns));
+                    })
+                    .fail(function(response) { console.log("Issue getting orders");
+                     });
+            }
 
-            <?php if ($message !== ""): ?>
+            function filterAndSort(orders) {
+                var filteredOrders = [];
+                var filter = jQuery("#admin-order-filter").val().toLowerCase();
 
-                <div class="order-message <?php
-                    echo $messageType === "success"
-                        ? "order-success"
-                        : "order-error";
-                ?>">
-                    <?php echo escapeHTML($message); ?>
-                </div>
+                orders.forEach(p => {
+                    var customer = p["customer_name"].toLowerCase();
+                    var phone = p["customer_phone"].toLowerCase();
+                    var status = p["order_status"].toLowerCase();
 
-            <?php endif; ?>
+                    // starts with filter
+                    if (customer.indexOf(filter) == 0 || phone.indexOf(filter) == 0 || status == filter) {
+                        filteredOrders.push(p);
+                    }
+                });
 
+                var sorting = tableQueryColumns[tableDisplayColumns.indexOf(jQuery("#admin-order-sorting").val())];
 
-            <form method="POST" action="page-orders-admin.php">
+                filteredOrders.sort(function(a, b) {
+                    var sortA = Number.parseFloat(a[sorting]);
+                    sortA = Number.isNaN(sortA) ? a[sorting] : sortA
+                    
+                    var sortB = Number.parseFloat(b[sorting]);
+                    sortB = Number.isNaN(sortB) ? b[sorting] : sortB
 
-                <input
-                    type="hidden"
-                    name="csrf_token"
-                    value="<?php echo escapeHTML($_SESSION["order_csrf_token"]); ?>"
-                >
+                    if (sortA < sortB) {
+                        return -1;
+                    }
+                    if (sortA > sortB) {
+                        return 1;
+                    }
 
-                <section class="order-form-section">
+                    return 0;
+                })
+                if (jQuery("#admin-order-sorting-asc").val() == "1") {
+                    filteredOrders.reverse();
+                }
 
-                    <h3>Customer Information</h3>
+                return filteredOrders;
+            }
 
-                    <label for="customer-name">
-                        Customer Name
-                    </label>
+            // Button events
 
-                    <input
-                        type="text"
-                        id="customer-name"
-                        name="customer_name"
-                        maxlength="150"
-                        required
-                        placeholder="Enter customer name"
-                    >
+            function getSelectedOrders() {
+                var selected = [];
+                jQuery(".admin-preview-table tr").get().forEach(row => {
+                    var checkbox = jQuery(row).find("input");
+                    if (checkbox.get().length > 0 && checkbox[0].checked) {
+                        selected.push(checkbox[0].name);
+                    }
+                })
 
-                    <label for="customer-phone">
-                        Customer Phone Number
-                    </label>
+                return selected;
+            }
 
-                    <input
-                        type="tel"
-                        id="customer-phone"
-                        name="customer_phone"
-                        maxlength="20"
-                        required
-                        placeholder="Enter customer phone number. eg. 876-123-1234"
-                        pattern="^\d{3}-\d{3}-\d{4}$"
-                    >
+            function clickOrderDetails() {
+                if (getSelectedOrders().length > 0) {
+                    navigation('page-order-details.php', getSelectedOrders()[0]);
+                }
+            }
+            function clickEditOrder() {
+                if (getSelectedOrders().length > 0) {
+                    navigation('form-edit-order.php', getSelectedOrders()[0]);
+                }
+            }
 
-                </section>
+            function clickCancelOrder() {
+                if (getSelectedOrders().length > 0) {
+                    var archiveQuery = "../authentication/action-authorization.php";
 
+                    jQuery.get(archiveQuery + "?attempt=cancel-order&id=" + getSelectedOrders()[0])
+                    .done(function(response) {
+                        var json = jQuery.parseJSON(response);
+                        if (json.alert != null) {
+                            alert(json.alert)
+                        }
 
-                <section class="order-form-section">
+                        if (json.status == "confirmation") {
+                            var dialog = jQuery(".admin-form-confirmation");
+                            dialog.html(json.html);
+                            dialog[0].showModal();
+                        }
+                    });
+                }
+            }
+            function clickCompleteOrder() {
+                if (getSelectedOrders().length > 0) {
+                    var archiveQuery = "../authentication/action-authorization.php";
 
-                    <h3>Select Products</h3>
+                    jQuery.get(archiveQuery + "?attempt=complete-order&id=" + getSelectedOrders()[0])
+                    .done(function(response) {
+                        var json = jQuery.parseJSON(response);
+                        if (json.alert != null) {
+                            alert(json.alert)
+                        }
 
-                    <p>
-                        Enter the number of sale units required for each product.
-                        The available stock shown is the physical stock that has
-                        not already been reserved.
-                    </p>
+                        if (json.status == "confirmation") {
+                            var dialog = jQuery(".admin-form-confirmation");
+                            dialog.html(json.html);
+                            dialog[0].showModal();
+                        }
+                    });
+                }
+            }
+            function confirmRemovalSubmission() {
+                jQuery.ajax("../authentication/action-authorization.php?attempt=confirm-order-removal")
+                    .done(function(response) {
+                        jQuery(".admin-preview-table input").prop("checked", false);
+                        populatePreviewTable();
+                    })
+                    .fail(function() { alert("There was an internal issue in cancelling/completing the order.") });
+            }
 
-                    <?php if (count($products) > 0): ?>
+            // document load
 
-                        <table class="order-product-table">
+            jQuery().ready(function(event) {
+                populateSortingOptions();
+                populatePreviewTable();
+            })
 
-                            <thead>
-                                <tr>
-                                    <th>Product</th>
-                                    <th>Category</th>
-                                    <th>Price (JMD)</th>
-                                    <th>Quantity per Sale</th>
-                                    <th>Available Stock</th>
-                                    <th>Order Quantity</th>
-                                    <th>Subtotal (JMD)</th>
-                                </tr>
-                            </thead>
+        </script>
+    </head>
 
-                            <tbody>
+    <body>
+        <header>
+            <?php require "instance/navigation-bar.html"?>
+        </header>
 
-                                <?php foreach ($products as $product): ?>
-
-                                    <?php
-                                        $maximumSales = (int)floor(
-                                            ((float)$product["available_stock"] /
-                                            (float)$product["sell_quantity"]) + 0.0000001
-                                        );
-                                    ?>
-
-                                    <tr>
-
-                                        <td>
-                                            <?php echo escapeHTML($product["display_name"]); ?>
-                                        </td>
-
-                                        <td>
-                                            <?php echo escapeHTML($product["display_category"]); ?>
-                                        </td>
-
-                                        <td>
-                                            $<?php echo number_format(
-                                                (float)$product["original_price"],
-                                                2
-                                            ); ?>
-                                        </td>
-
-                                        <td>
-                                            <?php echo escapeHTML($product["sell_quantity"]); ?>
-                                            <?php echo escapeHTML($product["unit_of_measure"]); ?>
-                                        </td>
-
-                                        <td>
-                                            <?php echo escapeHTML($product["available_stock"]); ?>
-                                            <?php echo escapeHTML($product["unit_of_measure"]); ?>
-                                        </td>
-
-                                        <td>
-
-                                            <input
-                                                class="order-quantity"
-                                                type="number"
-                                                name="quantities[<?php echo (int)$product["product_id"]; ?>]"
-                                                min="0"
-                                                max="<?php echo $maximumSales; ?>"
-                                                step="1"
-                                                value="0"
-                                                data-price="<?php echo escapeHTML($product["original_price"]); ?>"
-                                            >
-
-                                        </td>
-
-                                        <td class="order-subtotal">
-                                            $0.00
-                                        </td>
-
-                                    </tr>
-
-                                <?php endforeach; ?>
-
-                            </tbody>
-
-                        </table>
-
-                    <?php else: ?>
-
-                        <p>
-                            No products are currently available to order.
-                        </p>
-
-                    <?php endif; ?>
-
-                    <div class="order-total">
-                        Total: J$<span id="order-total">0.00</span>
+        <main class="admin">
+            <?php include "instance/admin-header.html" ?>
+            <div>
+                <section id="admin-order-controls">
+                    <div>
+                        <button onclick="navigation('form-add-order.php')">Create Order</button>
+                        <button onclick="clickEditOrder()">Edit Order</button>
                     </div>
-
+                    <button onclick="navigation('page-home-admin.php')">Return</button>
                 </section>
+                <section id="admin-order-preview">
+                    <dialog class="admin-form-confirmation" closedby="closerequest">
+                    </dialog>
+                    <div>
+                        <button id="admin-order-details" onclick="clickOrderDetails()">Details</button>
+                        <button onclick="clickCompleteOrder()">Compelte Order</button>
+                        <button onclick="clickCancelOrder()">Cancel Order</button>
+                        <label id="admin-order-filter-label">Search Filter</label>
+                        <input id="admin-order-filter" type="search" name="order-filter" placeholder="eg. Senku Ishigami. eg. 876-384-3923" pattern="^[A-Za-z_ \-0-9]+$" aria-labelledby="admin-order-filter-label" onkeyup="populatePreviewTable()"></input>
+                        <select id="admin-order-sorting" onchange="populatePreviewTable()"></select>
+                        <select id="admin-order-sorting-asc" onchange="populatePreviewTable()">
+                            <option value="0">Ascending</option>
+                            <option value="1">Descending</option>
+                        </select>
+                    </div>
+                    <table class="admin-preview-table">
 
+                    </table>
+                </section>
+            </div>
+        </main>
 
-                <div class="order-buttons">
-
-                    <button
-                        type="submit"
-                        <?php echo count($products) === 0 ? "disabled" : ""; ?>
-                    >
-                        Create Order
-                    </button>
-
-                    <button
-                        type="reset"
-                        onclick="resetOrderTotal()"
-                    >
-                        Clear Form
-                    </button>
-
-                    <button
-                        type="button"
-                        onclick="window.location.href='page-home-admin.php'"
-                    >
-                        Cancel
-                    </button>
-
-                </div>
-
-            </form>
-
-        </div>
-
-    </main>
-
-    <?php require "instance/copyright.html"; ?>
-
-
-    <script>
-
-        function updateOrderTotal() {
-
-            let total = 0;
-
-            document.querySelectorAll(".order-quantity").forEach(input => {
-
-                const quantity = Number(input.value) || 0;
-                const price = Number(input.dataset.price) || 0;
-
-                const subtotal = quantity * price;
-
-                const row = input.closest("tr");
-
-                row.querySelector(".order-subtotal").textContent =
-                    "$" + subtotal.toFixed(2);
-
-                total += subtotal;
-
-            });
-
-            document.getElementById("order-total").textContent =
-                total.toFixed(2);
-        }
-
-
-        function resetOrderTotal() {
-
-            setTimeout(() => {
-                updateOrderTotal();
-            }, 0);
-
-        }
-
-
-        document.querySelectorAll(".order-quantity").forEach(input => {
-
-            input.addEventListener("input", updateOrderTotal);
-
-        });
-
-    </script>
-
-</body>
+        <?php require "instance/copyright.html"?>
+    </body>
 
 </html>

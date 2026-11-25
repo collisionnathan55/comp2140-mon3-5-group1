@@ -22,10 +22,11 @@ $orderItems = [];
 $products = [];
 $orderID = 0;
 
-if (isset($_POST["order_id"]) && ctype_digit((string)$_POST["order_id"])) {
-    $orderID = (int)$_POST["order_id"];
-} elseif (isset($_GET["order_id"]) && ctype_digit((string)$_GET["order_id"])) {
-    $orderID = (int)$_GET["order_id"];
+if (isset($_REQUEST["val"]) && ctype_digit((string)$_REQUEST["val"])) {
+    $orderID = (int)$_REQUEST["val"];
+}
+else {
+    header("Location: ../authentication/index.php?dest=last");
 }
 
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["save_order_changes"])) {
@@ -230,7 +231,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["save_order_changes"])
         ]);
 
         $db->commit();
-        header("Location: page-edit-order.php?order_id=" . $orderID . "&updated=1");
+        header("Location: form-edit-order.php?order_id=" . $orderID . "&updated=1");
         exit();
 
     } catch (Throwable $e) {
@@ -313,8 +314,7 @@ foreach ($orderItems as $item) {
     <link rel="stylesheet" href="master.css">
     <link rel="stylesheet" href="admin-master.css">
     <style>
-        .edit-order-container { width: 100%; max-width: 1100px; margin: 2rem auto; padding: 1.5rem; }
-        .edit-order-container h2 { margin-top: 1rem; }
+        .edit-order-container { width: 100%; max-width: 1100px; padding: 0 1.5rem; }
         .edit-order-message { padding: 0.9rem; margin: 1rem 0; border-radius: 5px; }
         .edit-order-success { background: #e5f5e9; color: #176b2c; }
         .edit-order-error { background: #fdeaea; color: #9b1c1c; }
@@ -336,7 +336,6 @@ foreach ($orderItems as $item) {
 <main class="admin">
     <?php include "instance/admin-header.html"; ?>
     <div class="edit-order-container">
-        <a class="edit-order-back" href="page-orders-admin.php">Back to Make Order</a>
         <h2>Edit Order</h2>
 
         <?php if ($message !== ""): ?>
@@ -346,7 +345,7 @@ foreach ($orderItems as $item) {
         <?php endif; ?>
 
         <?php if ($orderID < 1): ?>
-            <form method="GET" action="page-edit-order.php">
+            <form method="GET" action="form-edit-order.php">
                 <label for="order-id">Enter Order ID</label>
                 <input type="number" id="order-id" name="order_id" min="1" required>
                 <button type="submit">Find Order</button>
@@ -359,8 +358,8 @@ foreach ($orderItems as $item) {
             <?php if (strtolower($order["order_status"]) !== "pending"): ?>
                 <p>This order cannot be edited because only pending orders can be changed.</p>
             <?php else: ?>
-                <form method="POST" action="page-edit-order.php">
-                    <input type="hidden" name="order_id" value="<?php echo (int)$order["order_id"]; ?>">
+                <form method="POST" action="form-edit-order.php">
+                    <input type="hidden" name="val" value="<?php echo (int)$order["order_id"]; ?>">
                     <input type="hidden" name="csrf_token" value="<?php echo editOrderEscape($_SESSION["edit_order_csrf_token"]); ?>">
 
                     <section class="edit-order-section">
@@ -408,7 +407,7 @@ foreach ($orderItems as $item) {
                     <div class="edit-order-total">New Total: J$<span id="edit-order-total">0.00</span></div>
                     <div class="edit-order-buttons">
                         <button type="submit" name="save_order_changes" value="1">Save Changes</button>
-                        <button type="button" onclick="window.location.href='page-orders-admin.php'">Cancel</button>
+                        <button type="button" onclick="navigation('page-orders-admin.php')">Cancel</button>
                     </div>
                 </form>
             <?php endif; ?>

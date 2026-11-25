@@ -70,6 +70,7 @@
                 jQuery("#product-create-price").val(product["original_price"]);
                 jQuery("#product-create-quantity").val(product["sell_quantity"]);
                 jQuery("#product-create-stock").val(product["stock_quantity"]);
+                jQuery("#product-create-unit").val(product["unit_of_measure"]);
 
                 jQuery("#product-create-reserved").val(product["reserved_quantity"]);
 

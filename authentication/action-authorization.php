@@ -13,8 +13,9 @@ function authorizePage(string $pageName) {
         "page-home-admin.php",
         "page-products-admin.php",
         "page-orders-admin.php",
-        "page-edit-order.php",
-        "form-add-product.php"
+
+        "form-add-product.php",
+        "form-edit-order.php"
     ];
 
     if (in_array($pageName, $adminPages)) {
@@ -29,6 +30,7 @@ function authorizePage(string $pageName) {
         "home.php",
         "page-home-admin.php",
         "page-products-admin.php",
+        "page-orders-admin.php",
     ];
 
     if (in_array($pageName, $validLastPages)) {
@@ -58,7 +60,8 @@ $response["status"] = "ok";
 $admin_actions = [
     "add-product", "confirm-product", "edit-product",
     "get-products-all",
-    "archive-products", "delete-products", "confirm-product-removal"
+    "archive-products", "delete-products", "confirm-product-removal",
+    "get-orders-all"
 ];
 if (in_array($attempt, $admin_actions) && !isAdmin()) {
     $response["alert"] = "You don't have the permissions to attempt this.";
@@ -228,6 +231,84 @@ switch ($attempt) {
         discardFormRequest();
         break;
     //
+
+    case "get-orders-all":
+        include_once "../orders/get-orders.php";
+        include_once "../products/get-products.php";
+        $orders = getAllOrders();
+
+        for ($i = 0; $i < count($orders); $i++) {
+            $orders[$i]["related_products"] = "";
+            $order_items = getOrderItemsByOrder($orders[$i]["order_id"]);
+            
+            foreach ($order_items as $item) {
+                $product = getProductbyId($item["product_id"]);
+                if ($product != null) {
+                    $orders[$i]["related_products"] .= $product["display_name"] . ", ";
+                }
+            }
+
+            if (strlen($orders[$i]["related_products"]) > 1) {
+                $orders[$i]["related_products"] = substr($orders[$i]["related_products"], 0, strlen($orders[$i]["related_products"]) - 2);
+            }
+        }
+        
+        $response["dataList"] = $orders;
+        break;
+    //
+
+    case "cancel-order":
+        include "../orders/resolve-orders.php";
+
+        if (!isset($_GET["id"])) {
+            $response["status"] = "error";
+            break;
+        }
+
+        if (!isLiveOrder($_GET["id"])) {
+            $response["status"] = "error";
+            $response["alert"] = "Please choose a live order.";
+            break;
+        }
+
+        storeFormRequest($_GET);
+        $response["status"] = "confirmation";
+        $response["html"] = orderCancelConfirmationRequest($_GET["id"]);
+        break;
+    case "complete-order":
+        include "../orders/resolve-orders.php";
+
+        if (!isset($_GET["id"])) {
+            $response["status"] = "error";
+            break;
+        }
+
+        if (!isLiveOrder($_GET["id"])) {
+            $response["status"] = "error";
+            $response["alert"] = "Please choose a live order.";
+            break;
+        }
+
+        storeFormRequest($_GET);
+        $response["status"] = "confirmation";
+        $response["html"] = orderCompleteConfirmationRequest($_GET["id"]);
+        break;
+    case "confirm-order-removal":
+        include "../orders/resolve-orders.php";
+        $query = getFormRequest();
+
+        switch ($query["attempt"]) {
+            case "cancel-order":
+                cancelOrder($query["id"]);
+            break;
+            case "complete-order":
+                completeOrder($query["id"]);
+            break;
+        }
+
+        discardFormRequest();
+        break;
+        //
     }
 
 echo json_encode($response);

@@ -16,7 +16,7 @@ function getOrdersByName(string $customerName) {
     }
     return [];
 }
-function getOrdersByPhone(int $phoneNumber) {
+function getOrdersByPhone(string $phoneNumber) {
     $alpha = '/^\d{3}-\d{3}-\d{4}$/';
     if (preg_match($alpha, $phoneNumber)) {
         return db_query_orders_phone($phoneNumber);
@@ -61,6 +61,31 @@ function isLiveOrder(int $order_id) {
     }
 
     return true;
+}
+function filterLiveOrders(array $orders) {
+    $filter = [];
+    foreach ($orders as $o) {
+        if (isLiveOrder($o["order_id"])) {
+            array_push($filter, $o);
+        }
+    }
+    return $filter;
+}
+function filterLiveOrderItems(array $order_items) {
+    $filter = [];
+    foreach ($order_items as $o) {
+        if (isLiveOrder($o["order_id"])) {
+            array_push($filter, $o);
+        }
+    }
+    return $filter;
+}
+
+function getOrderProducts(int $order_id) {
+    $order = getOrderById($order_id);
+    if ($order == null) {
+        return false;
+    }
 }
 
 ?>
