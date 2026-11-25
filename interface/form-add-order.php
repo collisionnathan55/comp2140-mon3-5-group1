@@ -7,6 +7,7 @@ if (!authorizePage(basename(__FILE__))) {
 }
 
 require_once "../database/database-config.php";
+require_once "../products/get-products.php";
 
 // Generate a CSRF token for this session.
 if (empty($_SESSION["order_csrf_token"])) {
@@ -120,7 +121,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 stock_quantity,
                 reserved_quantity,
                 is_archived,
-                expiration_date
+                expiration_date,
+                stale_price
              FROM products
              WHERE product_id = :product_id
              FOR UPDATE"
@@ -152,7 +154,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 );
             }
 
-            $price = (float)$product["original_price"];
+            $price = getTimelyPrice($product);
             $sellQuantity = (float)$product["sell_quantity"];
 
             $stock = (float)$product["stock_quantity"];
@@ -302,6 +304,7 @@ try {
             reserved_quantity,
             unit_of_measure,
             expiration_date,
+            stale_price,
             (stock_quantity - reserved_quantity) AS available_stock
          FROM products
          WHERE is_archived = 0
@@ -572,8 +575,9 @@ function escapeHTML($value)
                                         </td>
 
                                         <td>
-                                            $<?php echo number_format(
-                                                    (float)$product["original_price"],
+                                            $<?php 
+                                            echo number_format(
+                                                    (float)getTimelyPrice($product),
                                                     2
                                                 ); ?>
                                         </td>
@@ -598,7 +602,7 @@ function escapeHTML($value)
                                                 max="<?php echo $maximumSales; ?>"
                                                 step="1"
                                                 value="0"
-                                                data-price="<?php echo escapeHTML($product["original_price"]); ?>">
+                                                data-price="<?php echo escapeHTML(getTimelyPrice($product)); ?>">
 
                                         </td>
 

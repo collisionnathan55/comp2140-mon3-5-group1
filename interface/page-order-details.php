@@ -195,7 +195,7 @@
                     displayPhone = "+1 (" + phoneSplit[0] + ") " + phoneSplit[1] + "-" + phoneSplit[2];
                 }
                 jQuery("#order-number").text(displayPhone);
-                jQuery("#order-date").text(new Date(date).toLocaleString('default', { month: 'long', day:"2-digit", year:"numeric" }))
+                jQuery("#order-date").text("On: " + new Date(date).toLocaleString('default', { month: 'long', day:"2-digit", year:"numeric" }))
             })
 
         </script>
@@ -212,7 +212,7 @@
                     <div class="bubble-div" id="main-description">
                         <h3 id="order-id">Order #<?php echo $order["order_id"];?></h3>
                         <div>
-                            <p id="order-name"><?php echo $order["customer_name"];?></p>
+                            <p id="order-name">For: <?php echo $order["customer_name"];?></p>
                             <p id="order-number">Customer Number</p>
                             <p id="order-date">Placed date</p>
                             <p id="order-status"><?php echo $order["order_status"];?></p>

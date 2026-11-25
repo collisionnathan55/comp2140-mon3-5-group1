@@ -93,4 +93,11 @@ function isAvailable(array $product) {
     return false;
 }
 
+function getTimelyPrice(array $product) {
+    if (daysToExpiration($product) <= 3) {
+        return (float) $product["stale_price"];
+    }
+    return (float) $product["original_price"];
+}
+
 ?>
