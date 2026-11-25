@@ -274,7 +274,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 }
 
 
-// Display the successful order message.
+// Load the saved order details after creation so they can be shown
+// in a confirmation summary dialog.
+$createdOrder = null;
+$createdOrderItems = [];
+
 if (isset($_GET["created"]) && ctype_digit($_GET["created"])) {
 
     $createdOrderID = (int)$_GET["created"];
@@ -283,6 +287,35 @@ if (isset($_GET["created"]) && ctype_digit($_GET["created"])) {
         " was successfully created.";
 
     $messageType = "success";
+
+    try {
+        $db = pdo();
+
+        $createdOrderQuery = $db->prepare(
+            "SELECT order_id, customer_name, customer_phone, total_cost, order_date
+             FROM orders
+             WHERE order_id = :order_id"
+        );
+        $createdOrderQuery->execute([":order_id" => $createdOrderID]);
+        $createdOrder = $createdOrderQuery->fetch();
+
+        if ($createdOrder) {
+            $createdItemsQuery = $db->prepare(
+                "SELECT p.display_name, oi.quantity, oi.stored_unit_price,
+                        (oi.quantity * oi.stored_unit_price) AS subtotal
+                 FROM order_items oi
+                 INNER JOIN products p ON p.product_id = oi.product_id
+                 WHERE oi.order_id = :order_id
+                 ORDER BY p.display_name"
+            );
+            $createdItemsQuery->execute([":order_id" => $createdOrderID]);
+            $createdOrderItems = $createdItemsQuery->fetchAll();
+        }
+    } catch (Throwable $e) {
+        error_log($e->getMessage());
+        // The order has already been saved. Keep the success message visible
+        // even if the summary details cannot be loaded.
+    }
 }
 
 
@@ -426,6 +459,57 @@ function escapeHTML($value)
             color: #800000;
         }
 
+        .order-success-dialog {
+            width: min(90%, 650px);
+            max-height: 85vh;
+            overflow-y: auto;
+            border: none;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+        }
+
+        .order-success-dialog::backdrop {
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        .order-success-dialog h2 {
+            margin-top: 0;
+            color: #176b35;
+        }
+
+        .order-summary-details {
+            display: grid;
+            grid-template-columns: max-content 1fr;
+            gap: 0.5rem 1rem;
+            margin: 1rem 0;
+        }
+
+        .order-summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        .order-summary-table th,
+        .order-summary-table td {
+            border: 1px solid #ccc;
+            padding: 0.6rem;
+            text-align: left;
+        }
+
+        .order-summary-total {
+            text-align: right;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin: 1rem 0;
+        }
+
+        .order-success-dialog button {
+            padding: 0.7rem 1.5rem;
+            cursor: pointer;
+        }
+
         .order-buttons {
             display: flex;
             gap: 1rem;
@@ -462,6 +546,59 @@ function escapeHTML($value)
 </head>
 
 <body>
+
+    <?php if ($createdOrder): ?>
+        <dialog id="order-success-dialog" class="order-success-dialog">
+            <h2>Order Successfully Created!</h2>
+            <p>Your order has been saved successfully. Here is the order summary.</p>
+
+            <div class="order-summary-details">
+                <strong>Order Number:</strong>
+                <span>#<?php echo (int)$createdOrder["order_id"]; ?></span>
+
+                <strong>Customer Name:</strong>
+                <span><?php echo escapeHTML($createdOrder["customer_name"]); ?></span>
+
+                <strong>Phone Number:</strong>
+                <span><?php echo escapeHTML($createdOrder["customer_phone"]); ?></span>
+
+                <strong>Order Date:</strong>
+                <span><?php echo escapeHTML($createdOrder["order_date"]); ?></span>
+            </div>
+
+            <h3>Order Details</h3>
+            <div style="overflow-x:auto;">
+                <table class="order-summary-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th>Unit Price (JMD)</th>
+                            <th>Subtotal (JMD)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($createdOrderItems as $item): ?>
+                            <tr>
+                                <td><?php echo escapeHTML($item["display_name"]); ?></td>
+                                <td><?php echo escapeHTML($item["quantity"]); ?></td>
+                                <td>$<?php echo number_format((float)$item["stored_unit_price"], 2); ?></td>
+                                <td>$<?php echo number_format((float)$item["subtotal"], 2); ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+
+            <p class="order-summary-total">
+                Total: J$<?php echo number_format((float)$createdOrder["total_cost"], 2); ?>
+            </p>
+
+            <button type="button" onclick="document.getElementById('order-success-dialog').close()">
+                Okay
+            </button>
+        </dialog>
+    <?php endif; ?>
 
     <header>
         <?php require "instance/navigation-bar.html"; ?>
@@ -657,6 +794,14 @@ function escapeHTML($value)
 
 
     <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const successDialog = document.getElementById("order-success-dialog");
+
+            if (successDialog) {
+                successDialog.showModal();
+            }
+        });
+
         function updateOrderTotal() {
 
             let total = 0;
