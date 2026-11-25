@@ -25,6 +25,16 @@ function authorizePage(string $pageName) {
         }
     }
 
+    $validLastPages = [
+        "home.php",
+        "page-home-admin.php",
+        "page-products-admin.php",
+    ];
+
+    if (in_array($pageName, $validLastPages)) {
+        $_SESSION["lastAuthenticatedPage"] = $pageName;
+    }
+
     return true;
 }
 ?>

@@ -153,9 +153,6 @@ main {
 .admin-preview-table-check {
     text-align: center;
 }
-#admin-product-sorting, #admin-product-sorting-asc {
-    height: 100%;
-}
 
 /* Responsiveness */
 

@@ -36,10 +36,11 @@
                 align-items: center;
             }
             #admin-product-controls > div {
+                width: 100%;
+
                 display: flex;
                 flex-direction: column;
                 justify-content: start;
-                align-items: center;
 
                 gap: 2vmax;
             }
@@ -69,11 +70,32 @@
 
                 display: flex;
                 flex-direction: row;
-                gap: 1vmin;
 
                 align-items: center;
+                justify-content: space-between;
+            }
+            #admin-product-preview > div > div {
+                height: 100%;
+                
+                display: flex;
+                flex-direction: row;
+
+                gap: 1vmax;
+            }
+            #admin-product-preview > div > div > button {
+                padding: 0.3em;
+                font-size: smaller;
+                border-width: 0.01em;
+            }
+            #admin-product-preview #admin-product-details {
+                padding-left: 1.8em;
+                padding-right: 1.8em;
+            }
+            #admin-product-sorting, #admin-product-sorting-asc {
+                height: 100%;
             }
             #admin-product-preview input {
+                height: 100%;
                 flex-grow: 1;
             }
 
@@ -176,6 +198,11 @@
                 return selected;
             }
 
+            function clickProductDetails() {
+                if (getSelectedProducts().length > 0) {
+                    navigation('page-product-details.php', getSelectedProducts()[0]);
+                }
+            }
             function clickEditProduct() {
                 if (getSelectedProducts().length > 0) {
                     navigation('form-add-product.php', getSelectedProducts()[0]);
@@ -261,8 +288,6 @@
                     <div>
                         <button onclick="navigation('form-add-product.php')">Create Product</button>
                         <button onclick="clickEditProduct()">Edit Product</button>
-                        <button onclick="clickArchiveProduct(true)">Archive Selected</button>
-                        <button onclick="clickArchiveProduct(false)">Un-Archive Selected</button>
                         <button onclick="clickDeleteProduct()">Delete Product</button>
                     </div>
                     <button onclick="navigation('page-home-admin.php')">Return</button>
@@ -271,13 +296,20 @@
                     <dialog class="admin-form-confirmation" closedby="closerequest">
                     </dialog>
                     <div>
-                        <label id="admin-product-filter-label">Search Filter</label>
-                        <input id="admin-product-filter" type="search" name="product-filter" placeholder="eg. Apple. eg. Archived" pattern="^[A-Za-z_ ]+$" aria-labelledby="admin-product-filter-label" onkeyup="populatePreviewTable()"></input>
-                        <select id="admin-product-sorting" onchange="populatePreviewTable()"></select>
-                        <select id="admin-product-sorting-asc" onchange="populatePreviewTable()">
-                            <option value="0">Ascending</option>
-                            <option value="1">Descending</option>
-                        </select>
+                        <div>
+                            <button id="admin-product-details" onclick="clickProductDetails()">Details</button>
+                            <button onclick="clickArchiveProduct(true)">Archive Selected</button>
+                            <button onclick="clickArchiveProduct(false)">Un-Archive Selected</button>
+                        </div>
+                        <div>
+                            <label id="admin-product-filter-label">Search Filter</label>
+                            <input id="admin-product-filter" type="search" name="product-filter" placeholder="eg. Apple. eg. Archived" pattern="^[A-Za-z_ ]+$" aria-labelledby="admin-product-filter-label" onkeyup="populatePreviewTable()"></input>
+                            <select id="admin-product-sorting" onchange="populatePreviewTable()"></select>
+                            <select id="admin-product-sorting-asc" onchange="populatePreviewTable()">
+                                <option value="0">Ascending</option>
+                                <option value="1">Descending</option>
+                            </select>
+                        </div>
                     </div>
                     <table class="admin-preview-table">
 

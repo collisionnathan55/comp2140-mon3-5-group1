@@ -10,3 +10,7 @@ function navigation(navTo, query = null) {
     window.location.href = rootWindow + "authentication/index.php" 
     + (navTo == null ? "" : "?dest=" + navTo + (query == null ? "" : "&nav-query=" + query));
 }
+
+function navigationReturn() {
+    window.location.href = rootWindow + "authentication/index.php?dest=last" 
+}

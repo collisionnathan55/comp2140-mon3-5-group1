@@ -25,10 +25,17 @@ function getQuery() {
 <?php
 const root = "comp2140-mon3-5-group1/";
 $rootWindow = substr($_SERVER["PHP_SELF"], 0, strpos($_SERVER["PHP_SELF"], root) + strlen(root));
+
 $location = getNavigationQuery();
+if ($location == "last") {
+    include_once "session-handler.php";
+    $location = isset($_SESSION["lastAuthenticatedPage"]) ? $_SESSION["lastAuthenticatedPage"] : "";
+}
+
 $query = "";
 if ($location != "") {
     $query = getQuery();
 }
+
 header("Location: " . $rootWindow . "interface/" . $location . $query);
 ?>
