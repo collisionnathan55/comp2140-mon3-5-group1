@@ -3,6 +3,7 @@
 - The source code detailed represents the software solution for the Yaad Goods Management System.
 
 - Currently hosted locally with xampp
+- Ensure to import the schema.sql from the database folder into phpMyAdmin before using the web app 
 - Files named '.env' are to be added to the root folder and database folder as shown in the .env.example.
 - The test plans are currently used through loading their table data into phpMyAdmin
 
