@@ -20,7 +20,7 @@ function cancelOrder(int $order_id) {
     $order = getOrderById($order_id);
     if ($order != null) {
         require_once "../system-actions/add-action.php";
-        createAtion_cancelOrder($order_id, $order["customer_name"]);
+        createAction_cancelOrder($order_id, $order["customer_name"]);
     }
 }
 function completeOrder(int $order_id) {
@@ -40,7 +40,7 @@ function completeOrder(int $order_id) {
     $order = getOrderById($order_id);
     if ($order != null) {
         require_once "../system-actions/add-action.php";
-        createAtion_completeOrder($order_id, $order["customer_name"]);
+        createAction_completeOrder($order_id, $order["customer_name"]);
     }
 }
 

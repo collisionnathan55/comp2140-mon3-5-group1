@@ -57,22 +57,33 @@ function createAction_deleteProduct(string $pname) {
     }
 }
 
-function createAtion_cancelOrder(string $id, string $oname) {
+function createAction_editOrder(string $id, string $oname) {
+    try {
+        $action = "EDIT";
+        $category = "ORDER";
+        $desription = "Edited order for " . $oname . " (#" . $id . ")";
+        db_add_action($action, $category, $desription);
+    }
+    catch(Exception $e) {
+        error_log("Failed to log action for edit product.\n" . $e);
+    }
+}
+function createAction_cancelOrder(string $id, string $oname) {
     try {
         $action = "CANCEL";
         $category = "ORDER";
-        $desription = "Cancelled order for " . $oname . "(#" . $id . ") and released its reserves.";
+        $desription = "Cancelled order for " . $oname . " (#" . $id . ") and released its reserves.";
         db_add_action($action, $category, $desription);
     }
     catch(Exception $e) {
         error_log("Failed to log action for cancel order.\n" . $e);
     }
 }
-function createAtion_completeOrder(string $id, string $oname) {
+function createAction_completeOrder(string $id, string $oname) {
     try {
         $action = "COMPLETE";
         $category = "ORDER";
-        $desription = "Completed order for " . $oname . "(#" . $id . ") and reduced its related stock.";
+        $desription = "Completed order for " . $oname . " (#" . $id . ") and reduced its related stock.";
         db_add_action($action, $category, $desription);
     }
     catch(Exception $e) {
@@ -83,9 +94,18 @@ function createAtion_completeOrder(string $id, string $oname) {
 // remove
 
 function deleteAction(int $id) {
-    db_delete_product($id);
+    db_delete_action($id);
 }
 function deleteAgedActions() {
+    $timezone = timezone_open("EST");
+    $old = 90;
 
+    $actions = getAllActions();
+    foreach ($actions as $action) {
+        $timespan = new DateTime($action["created_at"], $timezone)->diff(new DateTime('now', $timezone));
+        if ($timespan->days != false && $timespan->days > $old) {
+            deleteAction($action["log_id"]);
+        }
+    }
 }
 ?>
