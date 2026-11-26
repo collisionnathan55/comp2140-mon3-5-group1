@@ -7,7 +7,7 @@
     require_once "../products/get-products.php";
 
     function isAllowed() {
-        if (!isset($_GET["id"])) {
+        if (!isset($_GET["id"]) || $_GET["id"] == "") {
             return false;
         }
 
@@ -32,7 +32,7 @@
         exit;
     }
 
-    $order = getOrderById($_GET["id"]);
+    $order = getOrderById((int)$_GET["id"]);
     $order_items = getOrderItemsByOrder($order["order_id"]);
 ?>
 
