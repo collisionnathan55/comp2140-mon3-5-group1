@@ -274,7 +274,8 @@
                         <button onclick="clickCancelOrder()">Cancel Order</button>
                         <label id="admin-order-filter-label">Search Filter</label>
                         <input id="admin-order-filter" type="search" name="order-filter" placeholder="eg. Senku Ishigami. eg. 876-384-3923" pattern="^[A-Za-z_ \-0-9]+$" aria-labelledby="admin-order-filter-label" onkeyup="populatePreviewTable()"></input>
-                        <select id="admin-order-sorting" onchange="populatePreviewTable()"></select>
+                        <label id="admin-order-sorting-label">Sort By</label>
+                        <select id="admin-order-sorting" onchange="populatePreviewTable()" aria-labelledby="admin-order-sorting-label"></select>
                         <select id="admin-order-sorting-asc" onchange="populatePreviewTable()">
                             <option value="0">Ascending</option>
                             <option value="1">Descending</option>

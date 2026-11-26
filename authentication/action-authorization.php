@@ -34,6 +34,8 @@ function authorizePage(string $pageName) {
         "page-products-admin.php",
         "page-orders-admin.php",
         "page-actions-admin.php",
+
+        "page-products.php"
     ];
 
     if (in_array($pageName, $validLastPages)) {
@@ -178,6 +180,18 @@ switch ($attempt) {
 
         http_response_code(500);
         exit;
+    case "get-products-available":
+        include "../products/get-products.php";
+        $products = filterAvailable(getAllProducts());
+        for ($i = 0; $i < count($products); $i++) {
+            $products[$i]["timely_price"] = getTimelyPrice($products[$i]);
+            $products[$i]["available_groups"] = floor(($products[$i]["stock_quantity"] - $products[$i]["reserved_quantity"]) / $products[$i]["sell_quantity"]);
+            $products[$i]["stock_quantity"] = null;
+            $products[$i]["reserved_quantity"] = null;
+            // html security
+        }
+        $response["dataList"] = $products;
+        break;
     //
     
     case "archive-products":

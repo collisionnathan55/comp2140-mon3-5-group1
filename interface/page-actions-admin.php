@@ -205,7 +205,8 @@
                     <div>
                         <label id="admin-action-filter-label">Search Filter</label>
                         <input id="admin-action-filter" type="search" name="action-filter" placeholder="eg. April. eg. Product. eg. Edit" pattern="^[A-Za-z_ \-0-9]+$" aria-labelledby="admin-action-filter-label" onkeyup="populatePreviewTable()"></input>
-                        <select id="admin-action-sorting" onchange="populatePreviewTable()"></select>
+                        <label id="admin-action-sorting-label">Sort By</label>
+                        <select id="admin-action-sorting" onchange="populatePreviewTable()" aria-labelledby="admin-action-sorting-label"></select>
                         <select id="admin-action-sorting-asc" onchange="populatePreviewTable()">
                             <option value="1">Descending</option>
                             <option value="0">Ascending</option>

@@ -138,7 +138,7 @@
                 <h1>Ready to make an order?</h1>
                 <p>Browse our products and add them to your cart and finalize your order whenever you're ready. Find us on campus to pay and collect, or request delivery.</p>
                 <div>
-                    <button>Browse all Products</button>
+                    <button onclick="navigation('page-products.php')">Browse all Products</button>
                     <button onclick="navigation('form-add-order.php')">Make an Order</button>
                 </div>
             </section>

@@ -447,7 +447,7 @@ $displayPhone = $draft["customer_phone"] ?? ($order["customer_phone"] ?? "");
                 <?php if (strtolower($order["order_status"]) !== "pending"): ?><p>This order cannot be edited because only pending orders can be changed.</p>
                 <?php else: ?><form method="POST" action="form-edit-order.php"><input type="hidden" name="val" value="<?php echo (int)$order["order_id"]; ?>"><input type="hidden" name="csrf_token" value="<?php echo editOrderEscape($_SESSION["edit_order_csrf_token"]); ?>">
                         <section class="edit-order-section">
-                            <h3>Customer Information</h3><label for="customer-name">Customer Name</label><input type="text" id="customer-name" name="customer_name" maxlength="150" required value="<?php echo editOrderEscape($displayName); ?>"><label for="customer-phone">Customer Phone Number</label><input type="tel" id="customer-phone" name="customer_phone" maxlength="20" required value="<?php echo editOrderEscape($displayPhone); ?>">
+                            <h3>Customer Information</h3><label for="customer-name">Customer Name</label><input type="text" id="customer-name" name="customer_name" maxlength="150" required value="<?php echo editOrderEscape($displayName); ?>"><label for="customer-phone">Customer Phone Number</label><input type="tel" id="customer-phone" name="customer_phone" maxlength="20" pattern="^\d{3}-\d{3}-\d{4}$" placeholder="eg. 876-123-1234" required value="<?php echo editOrderEscape($displayPhone); ?>">
                         </section>
                         <section class="edit-order-section">
                             <h3>Order Products</h3>

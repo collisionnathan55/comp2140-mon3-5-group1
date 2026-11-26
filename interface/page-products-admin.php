@@ -314,7 +314,8 @@
                         <div>
                             <label id="admin-product-filter-label">Search Filter</label>
                             <input id="admin-product-filter" type="search" name="product-filter" placeholder="eg. Apple. eg. Archived" pattern="^[A-Za-z_ ]+$" aria-labelledby="admin-product-filter-label" onkeyup="populatePreviewTable()"></input>
-                            <select id="admin-product-sorting" onchange="populatePreviewTable()"></select>
+                            <label id="admin-product-sorting-label">Sort By</label>
+                            <select id="admin-product-sorting" onchange="populatePreviewTable()" aria-labelledby="admin-product-sorting-label"></select>
                             <select id="admin-product-sorting-asc" onchange="populatePreviewTable()">
                                 <option value="0">Ascending</option>
                                 <option value="1">Descending</option>

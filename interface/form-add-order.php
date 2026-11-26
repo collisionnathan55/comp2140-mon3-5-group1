@@ -365,7 +365,7 @@ $draftPhone = $draft["customer_phone"] ?? "";
                 <section class="order-form-section">
                     <h2>Customer Information</h2>
                     <label for="customer-name">Customer Name</label><input type="text" id="customer-name" name="customer_name" maxlength="150" required placeholder="Enter customer name" value="<?php echo addOrderEscape($draftName); ?>">
-                    <label for="customer-phone">Customer Phone Number</label><input type="tel" id="customer-phone" name="customer_phone" maxlength="20" required placeholder="Enter customer phone number" value="<?php echo addOrderEscape($draftPhone); ?>">
+                    <label for="customer-phone">Customer Phone Number</label><input type="tel" id="customer-phone" name="customer_phone" maxlength="20" required pattern="^\d{3}-\d{3}-\d{4}$" placeholder="Enter customer phone number. eg 876-123-1234" value="<?php echo addOrderEscape($draftPhone); ?>">
                 </section>
                 <section class="order-form-section">
                     <h2>Select Products</h2>
