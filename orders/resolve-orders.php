@@ -16,6 +16,12 @@ function cancelOrder(int $order_id) {
         reduceProductStock($item["product_id"], 0, $totalStock);
     }
     db_update_order_status($order_id, "cancelled");
+
+    $order = getOrderById($order_id);
+    if ($order != null) {
+        require_once "../system-actions/add-action.php";
+        createAtion_cancelOrder($order_id, $order["customer_name"]);
+    }
 }
 function completeOrder(int $order_id) {
     $order_items = getOrderItemsByOrder($order_id);
@@ -30,6 +36,12 @@ function completeOrder(int $order_id) {
         reduceProductStock($item["product_id"], $totalStock, $totalStock);
     }
     db_update_order_status($order_id, "completed");
+
+    $order = getOrderById($order_id);
+    if ($order != null) {
+        require_once "../system-actions/add-action.php";
+        createAtion_completeOrder($order_id, $order["customer_name"]);
+    }
 }
 
 function deleteOrder(int $order_id) {

@@ -62,6 +62,12 @@ function db_query_orderItems_product(int $product_id) {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+function db_query_actions_all() {
+    $stmt = pdo()->prepare("SELECT * FROM action_logs");
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
 // Additions
 
 function db_add_product(string $category, string $name, string $description, float $price, float $sell, float $stock, string $unit, string $expiration, float $stale_price) {
@@ -79,6 +85,14 @@ function db_add_product(string $category, string $name, string $description, flo
     $stmt->bindParam(":expiration", $expiration, PDO::PARAM_STR);
     $stmt->bindParam(":spoilPrice", $stale_price, PDO::PARAM_STR);
     
+    $stmt->execute();
+}
+
+function db_add_action(string $action, string $category, string $description) {
+    $stmt = pdo()->prepare("INSERT INTO action_logs (action, category, description) VALUES (:action, :category, :description)");
+    $stmt->bindParam(":action", $action, PDO::PARAM_STR);
+    $stmt->bindParam(":category", $category, PDO::PARAM_STR);
+    $stmt->bindParam(":description", $description, PDO::PARAM_STR);
     $stmt->execute();
 }
 
@@ -129,7 +143,6 @@ function db_update_order_status(int $id, string $status) {
 function db_delete_product(int $id) {
     $stmt = pdo()->prepare("DELETE FROM products WHERE products.product_id = :id");
     $stmt->bindParam(":id", $id, PDO::PARAM_INT);
-
     $stmt->execute();
 }
 
@@ -140,6 +153,12 @@ function db_delete_orderItem(int $id) {
 }
 function db_delete_order(int $id) {
     $stmt = pdo()->prepare("DELETE FROM orders WHERE orders.order_id = :id");
+    $stmt->bindParam(":id", $id, PDO::PARAM_INT);
+    $stmt->execute();
+}
+
+function db_delete_action(int $id) {
+    $stmt = pdo()->prepare("DELETE FROM action_logs WHERE action_logs.log_id = :id");
     $stmt->bindParam(":id", $id, PDO::PARAM_INT);
     $stmt->execute();
 }

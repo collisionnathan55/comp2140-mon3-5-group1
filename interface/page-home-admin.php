@@ -94,9 +94,9 @@
                         <p>Manually create and edit orders as processing requires. View orders and mark them for cancel or completion.</p>
                     </div>
                     <div>
-                        <button>Enter</button>
+                        <button onclick="navigation('page-actions-admin.php')">Enter</button>
                         <h3>View System Actions</h3>
-                        <p>View the last 30 administrative system additions, edits and removals.</p>
+                        <p>View the administrative system additions, edits and removals actioned within the last 90 days.</p>
                     </div>
                     <div>
                         <button>Enter</button>

@@ -13,6 +13,7 @@ function authorizePage(string $pageName) {
         "page-home-admin.php",
         "page-products-admin.php",
         "page-orders-admin.php",
+        "page-actions-admin.php",
 
         "form-add-product.php",
         "form-edit-order.php"
@@ -28,9 +29,12 @@ function authorizePage(string $pageName) {
 
     $validLastPages = [
         "home.php",
+
         "page-home-admin.php",
         "page-products-admin.php",
         "page-orders-admin.php",
+        "page-actions-admin.php",
+
         "page-order-details.php"
     ];
 
@@ -68,7 +72,8 @@ $admin_actions = [
     "add-product", "confirm-product", "edit-product",
     "get-products-all",
     "archive-products", "delete-products", "confirm-product-removal",
-    "get-orders-all"
+    "get-orders-all",
+    "get-actions"
 ];
 if (in_array($attempt, $admin_actions) && !isAdmin()) {
     $response["alert"] = "You don't have the permissions to attempt this.";
@@ -340,8 +345,17 @@ switch ($attempt) {
 
         discardFormRequest();
         break;
-        //
-    }
+    //
+    
+    case "get-actions":
+        include_once "../system-actions/add-action.php";
+        deleteAgedActions();
+        $actions = getAllActions();
+
+        $response["dataList"] = $actions;
+        break;
+    //
+}
 
 echo json_encode($response);
 ?>

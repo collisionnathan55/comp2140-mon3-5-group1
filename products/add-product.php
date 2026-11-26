@@ -24,6 +24,9 @@ function validateProduct(array $packed_product, bool $edit) {
 function createProduct(array $p) {
     try {
         db_add_product($p["product-category"], $p["product-name"], $p["product-description"], $p["product-price"], $p["product-quantity"], $p["product-stock"], $p["product-unit"], $p["product-freshness"], $p["product-spoil"]);
+
+        include_once "../system-actions/add-action.php";
+        createAction_addProduct($p);
     }
     catch(Exception $e) {
         throw new RuntimeException("Failed to add product.");
@@ -34,16 +37,28 @@ function createProduct(array $p) {
 
 function updateProduct(array $p) {
     try {
+        $oldProduct = getProductbyId($p["product-id"]);
+
         db_update_product($p["product-id"], $p["product-category"], $p["product-description"], $p["product-price"], $p["product-quantity"], $p["product-stock"], $p["product-reserved"], $p["product-unit"], $p["product-freshness"], $p["product-spoil"]);
+
+        $newProduct = getProductbyId($p["product-id"]);
+        if ($oldProduct != null && $newProduct != null) {
+            include_once "../system-actions/add-action.php";
+            createAction_editProduct($oldProduct, $newProduct);
+        }
     }
     catch(Exception $e) {
         throw new RuntimeException("Failed to update product.");
     }
 }
 function toggleArchiveProduct(int $id, bool $archive) {
-    if (getProductbyId($id) != null) {
+    $product = getProductbyId($id);
+    if ($product != null) {
         try {
             db_archive_product($id, $archive);
+
+            include_once "../system-actions/add-action.php";
+            createAction_archiveProduct($product, $archive);
         }
         catch (Exception $e) {
             throw new RuntimeException("Failed to update product.");
@@ -82,7 +97,6 @@ function reduceProductStock(int $id, float $reduceStockBy, float $reduceReserves
 
 function deleteProduct(int $id) {
     require_once "../orders/resolve-orders.php";
-    echo "hi1";
 
     $related_orders = getOrderItemsByProduct($id);
     foreach ($related_orders as $order) {
@@ -92,6 +106,11 @@ function deleteProduct(int $id) {
         deleteOrder($order["order_id"]);
     }
 
+    $product = getProductbyId($id);
+    if ($product != null) {
+        require_once "../system-actions/add-action.php";
+        createAction_deleteProduct($product["display_name"]);
+    }
     db_delete_product($id);
 }
 
