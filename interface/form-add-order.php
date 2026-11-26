@@ -1,848 +1,189 @@
 <?php
-
 require "../authentication/action-authorization.php";
-
-if (!authorizePage(basename(__FILE__))) {
-    exit();
-}
-
+if (!authorizePage(basename(__FILE__))) { exit(); }
 require_once "../database/database-config.php";
 
-// Generate a CSRF token for this session.
 if (empty($_SESSION["order_csrf_token"])) {
     $_SESSION["order_csrf_token"] = bin2hex(random_bytes(32));
 }
+function addOrderEscape($value) { return htmlspecialchars((string)$value, ENT_QUOTES, "UTF-8"); }
 
 $message = "";
 $messageType = "";
-$createdOrderID = null;
+$showConfirmation = false;
+$draft = $_SESSION["pending_new_order"] ?? null;
+$products = [];
 
-
-// Handle order submission.
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-
-    try {
-
-        // Check the CSRF token.
-        if (
-            !isset($_POST["csrf_token"]) ||
-            !hash_equals(
-                $_SESSION["order_csrf_token"],
-                $_POST["csrf_token"]
-            )
-        ) {
-            throw new RuntimeException(
-                "Invalid form submission. Please refresh the page."
-            );
-        }
-
-        $customerName = trim($_POST["customer_name"] ?? "");
-        $customerPhone = trim($_POST["customer_phone"] ?? "");
-        $quantities = $_POST["quantities"] ?? [];
-
-        // Validate customer information.
-        if ($customerName === "" || strlen($customerName) > 150) {
-            throw new RuntimeException(
-                "Please enter a valid customer name."
-            );
-        }
-
-        if (
-            $customerPhone === "" ||
-            strlen($customerPhone) > 20
-        ) {
-            throw new RuntimeException(
-                "Please enter a valid customer phone number."
-            );
-        }
-
-        if (!is_array($quantities)) {
-            throw new RuntimeException(
-                "Invalid product selection."
-            );
-        }
-
-        // Remove products with no quantity selected.
-        $selectedProducts = [];
-
-        foreach ($quantities as $productID => $quantity) {
-
-            if (!ctype_digit((string)$productID)) {
-                throw new RuntimeException(
-                    "Invalid product selected."
-                );
-            }
-
-            if (
-                $quantity === "" ||
-                $quantity === null ||
-                (float)$quantity == 0
-            ) {
-                continue;
-            }
-
-            if (
-                !filter_var(
-                    $quantity,
-                    FILTER_VALIDATE_INT
-                ) ||
-                (int)$quantity < 1
-            ) {
-                throw new RuntimeException(
-                    "Product quantities must be whole numbers greater than zero."
-                );
-            }
-
-            $selectedProducts[(int)$productID] = (int)$quantity;
-        }
-
-        if (count($selectedProducts) === 0) {
-            throw new RuntimeException(
-                "Please select at least one product."
-            );
-        }
-
-        $db = pdo();
-
-        // Start a transaction so all order changes succeed together.
-        $db->beginTransaction();
-
-        $orderItems = [];
-        $totalCost = 0.00;
-
-        // Lock and check each selected product.
-        $productQuery = $db->prepare(
-            "SELECT
-                product_id,
-                display_name,
-                original_price,
-                sell_quantity,
-                stock_quantity,
-                reserved_quantity,
-                is_archived,
-                expiration_date
-             FROM products
-             WHERE product_id = :product_id
-             FOR UPDATE"
-        );
-
-        foreach ($selectedProducts as $productID => $saleQuantity) {
-
-            $productQuery->execute([
-                ":product_id" => $productID
-            ]);
-
-            $product = $productQuery->fetch();
-
-            if (!$product) {
-                throw new RuntimeException(
-                    "One of the selected products no longer exists."
-                );
-            }
-
-            if ((int)$product["is_archived"] === 1) {
-                throw new RuntimeException(
-                    $product["display_name"] . " is no longer available."
-                );
-            }
-
-            if ($product["expiration_date"] < date("Y-m-d")) {
-                throw new RuntimeException(
-                    $product["display_name"] . " has expired and cannot be ordered."
-                );
-            }
-
-            $price = (float)$product["original_price"];
-            $sellQuantity = (float)$product["sell_quantity"];
-
-            $stock = (float)$product["stock_quantity"];
-            $reserved = (float)$product["reserved_quantity"];
-
-            if ($sellQuantity <= 0 || $price < 0) {
-                throw new RuntimeException(
-                    "Invalid selling information for " .
-                        $product["display_name"] . "."
-                );
-            }
-
-            // Calculate the physical stock required.
-            $physicalStockRequired = $saleQuantity * $sellQuantity;
-
-            // Calculate stock that has not already been reserved.
-            $availableStock = $stock - $reserved;
-
-            if ($physicalStockRequired > $availableStock) {
-                throw new RuntimeException(
-                    "Not enough stock available for " .
-                        $product["display_name"] . "."
-                );
-            }
-
-            // The customer pays for each sale unit.
-            $subtotal = $saleQuantity * $price;
-
-            $totalCost += $subtotal;
-
-            $orderItems[] = [
-                "product_id" => $productID,
-                "product_name" => $product["display_name"],
-                "sale_quantity" => $saleQuantity,
-                "physical_quantity" => $physicalStockRequired,
-                "unit_price" => $price
-            ];
-        }
-
-        // Create the order.
-        $orderStatement = $db->prepare(
-            "INSERT INTO orders
-                (customer_name, customer_phone, total_cost, order_status)
-             VALUES
-                (:customer_name, :customer_phone, :total_cost, 'pending')"
-        );
-
-        $orderStatement->execute([
-            ":customer_name" => $customerName,
-            ":customer_phone" => $customerPhone,
-            ":total_cost" => $totalCost
-        ]);
-
-        $orderID = (int)$db->lastInsertId();
-
-        // Insert each order item and reserve its stock.
-        $itemStatement = $db->prepare(
-            "INSERT INTO order_items
-                (order_id, product_id, quantity, stored_unit_price)
-             VALUES
-                (:order_id, :product_id, :quantity, :unit_price)"
-        );
-
-        $reserveStatement = $db->prepare(
-            "UPDATE products
-             SET reserved_quantity = reserved_quantity + :quantity
-             WHERE product_id = :product_id"
-        );
-
-        foreach ($orderItems as $item) {
-
-            $itemStatement->execute([
-                ":order_id" => $orderID,
-                ":product_id" => $item["product_id"],
-                ":quantity" => $item["sale_quantity"],
-                ":unit_price" => $item["unit_price"]
-            ]);
-
-            $reserveStatement->execute([
-                ":quantity" => $item["physical_quantity"],
-                ":product_id" => $item["product_id"]
-            ]);
-        }
-
-        // Record the order creation in the action log.
-        $logStatement = $db->prepare(
-            "INSERT INTO action_logs (action, description)
-             VALUES (:action, :description)"
-        );
-
-        $logStatement->execute([
-            ":action" => "create_order",
-            ":description" => "Order #" . $orderID .
-                " created for customer " . $customerName . "."
-        ]);
-
-        // Save all changes.
-        $db->commit();
-
-        // Redirect to prevent duplicate submissions on refresh.
-        header(
-            "Location: form-add-order.php?created=" . $orderID
-        );
-        exit();
-    } catch (Throwable $e) {
-
-        if (isset($db) && $db->inTransaction()) {
-            $db->rollBack();
-        }
-
-        error_log($e->getMessage());
-
-        $message = $e instanceof RuntimeException
-            ? $e->getMessage()
-            : "The order could not be created. Please check the database and try again.";
-
-        $messageType = "error";
-    }
-}
-
-
-// Load the saved order details after creation so they can be shown
-// in a confirmation summary dialog.
-$createdOrder = null;
-$createdOrderItems = [];
-
-if (isset($_GET["created"]) && ctype_digit($_GET["created"])) {
-
-    $createdOrderID = (int)$_GET["created"];
-
-    $message = "Order #" . $createdOrderID .
-        " was successfully created.";
-
-    $messageType = "success";
-
-    try {
-        $db = pdo();
-
-        $createdOrderQuery = $db->prepare(
-            "SELECT order_id, customer_name, customer_phone, total_cost, order_date
-             FROM orders
-             WHERE order_id = :order_id"
-        );
-        $createdOrderQuery->execute([":order_id" => $createdOrderID]);
-        $createdOrder = $createdOrderQuery->fetch();
-
-        if ($createdOrder) {
-            $createdItemsQuery = $db->prepare(
-                "SELECT p.display_name, oi.quantity, oi.stored_unit_price,
-                        (oi.quantity * oi.stored_unit_price) AS subtotal
-                 FROM order_items oi
-                 INNER JOIN products p ON p.product_id = oi.product_id
-                 WHERE oi.order_id = :order_id
-                 ORDER BY p.display_name"
-            );
-            $createdItemsQuery->execute([":order_id" => $createdOrderID]);
-            $createdOrderItems = $createdItemsQuery->fetchAll();
-        }
-    } catch (Throwable $e) {
-        error_log($e->getMessage());
-        // The order has already been saved. Keep the success message visible
-        // even if the summary details cannot be loaded.
-    }
-}
-
-
-// Retrieve products for the order form.
 try {
-
     $db = pdo();
-
     $productQuery = $db->query(
-        "SELECT
-            product_id,
-            display_name,
-            display_category,
-            original_price,
-            sell_quantity,
-            stock_quantity,
-            reserved_quantity,
-            unit_of_measure,
-            expiration_date,
-            (stock_quantity - reserved_quantity) AS available_stock
+        "SELECT product_id, display_name, display_category, original_price, sell_quantity,
+                stock_quantity, reserved_quantity, unit_of_measure, expiration_date,
+                (stock_quantity - reserved_quantity) AS available_stock
          FROM products
-         WHERE is_archived = 0
-           AND expiration_date >= CURDATE()
-           AND sell_quantity > 0
+         WHERE is_archived = 0 AND expiration_date >= CURDATE() AND sell_quantity > 0
            AND (stock_quantity - reserved_quantity) >= sell_quantity
          ORDER BY display_name ASC"
     );
-
     $products = $productQuery->fetchAll();
 } catch (Throwable $e) {
-
     error_log($e->getMessage());
-
     $products = [];
-
     $message = "Products could not be loaded. Please check the database connection.";
     $messageType = "error";
 }
 
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    try {
+        if (!isset($_POST["csrf_token"]) || !hash_equals($_SESSION["order_csrf_token"], $_POST["csrf_token"])) {
+            throw new RuntimeException("Invalid form submission. Please refresh the page.");
+        }
+        $action = $_POST["order_action"] ?? "preview";
 
-// HTML escaping helper.
-function escapeHTML($value)
-{
-    return htmlspecialchars(
-        (string)$value,
-        ENT_QUOTES,
-        "UTF-8"
-    );
+        if ($action === "deny") {
+            // Keep the draft in the session and return to the editable Make Order form.
+            $draft = $_SESSION["pending_new_order"] ?? null;
+            $showConfirmation = false;
+            $message = "You can revise the order details below. No order has been created.";
+            $messageType = "error";
+        } elseif ($action === "confirm") {
+            $draft = $_SESSION["pending_new_order"] ?? null;
+            if (!$draft) { throw new RuntimeException("The order draft has expired. Please enter the order again."); }
+
+            $db = pdo();
+            $db->beginTransaction();
+            $lockedItems = [];
+            $totalCost = 0.0;
+            $lockProduct = $db->prepare(
+                "SELECT product_id, display_name, original_price, sell_quantity, stock_quantity,
+                        reserved_quantity, is_archived, expiration_date
+                 FROM products WHERE product_id = :id FOR UPDATE"
+            );
+            foreach ($draft["items"] as $item) {
+                $lockProduct->execute([":id" => $item["product_id"]]);
+                $product = $lockProduct->fetch();
+                if (!$product || (int)$product["is_archived"] === 1 || $product["expiration_date"] < date("Y-m-d")) {
+                    throw new RuntimeException(($item["name"] ?? "A selected product") . " is no longer available. Please revise the order.");
+                }
+                $sellQuantity = (float)$product["sell_quantity"];
+                if ($sellQuantity <= 0 || abs((float)$product["original_price"] - (float)$item["unit_price"]) > 0.00001) {
+                    throw new RuntimeException("A product's price or selling quantity changed. Please review the order again.");
+                }
+                $physical = (int)$item["quantity"] * $sellQuantity;
+                $available = (float)$product["stock_quantity"] - (float)$product["reserved_quantity"];
+                if ($physical > $available + 0.000001) {
+                    throw new RuntimeException("Not enough stock is available for " . $product["display_name"] . ". Please revise the order.");
+                }
+                $lockedItems[] = ["product_id" => (int)$product["product_id"], "quantity" => (int)$item["quantity"], "price" => (float)$item["unit_price"], "physical" => $physical];
+                $totalCost += (int)$item["quantity"] * (float)$item["unit_price"];
+            }
+
+            $insertOrder = $db->prepare("INSERT INTO orders (customer_name, customer_phone, total_cost, order_status) VALUES (:name, :phone, :total, 'pending')");
+            $insertOrder->execute([":name" => $draft["customer_name"], ":phone" => $draft["customer_phone"], ":total" => round($totalCost, 2)]);
+            $newOrderID = (int)$db->lastInsertId();
+            $insertItem = $db->prepare("INSERT INTO order_items (order_id, product_id, quantity, stored_unit_price) VALUES (:order_id, :product_id, :quantity, :price)");
+            $reserve = $db->prepare("UPDATE products SET reserved_quantity = reserved_quantity + :quantity WHERE product_id = :product_id");
+            foreach ($lockedItems as $item) {
+                $insertItem->execute([":order_id" => $newOrderID, ":product_id" => $item["product_id"], ":quantity" => $item["quantity"], ":price" => $item["price"]]);
+                $reserve->execute([":quantity" => $item["physical"], ":product_id" => $item["product_id"]]);
+            }
+            $log = $db->prepare("INSERT INTO action_logs (action, description) VALUES ('create_order', :description)");
+            $log->execute([":description" => "Order #" . $newOrderID . " created for customer " . $draft["customer_name"] . "."]);
+            $db->commit();
+            unset($_SESSION["pending_new_order"]);
+            header("Location: form-add-order.php?created=" . $newOrderID);
+            exit();
+        } elseif ($action === "preview") {
+            $customerName = trim($_POST["customer_name"] ?? "");
+            $customerPhone = trim($_POST["customer_phone"] ?? "");
+            $quantities = $_POST["quantities"] ?? [];
+            if ($customerName === "" || strlen($customerName) > 150) { throw new RuntimeException("Please enter a valid customer name."); }
+            if ($customerPhone === "" || strlen($customerPhone) > 20) { throw new RuntimeException("Please enter a valid customer phone number."); }
+            if (!is_array($quantities)) { throw new RuntimeException("Invalid product selection."); }
+
+            $selected = [];
+            foreach ($quantities as $productID => $quantity) {
+                if (!ctype_digit((string)$productID)) { throw new RuntimeException("Invalid product selected."); }
+                if ($quantity === "" || $quantity === null || (float)$quantity == 0) { continue; }
+                if (!filter_var($quantity, FILTER_VALIDATE_INT) || (int)$quantity < 1) { throw new RuntimeException("Product quantities must be whole numbers greater than zero."); }
+                $selected[(int)$productID] = (int)$quantity;
+            }
+            if (!$selected) { throw new RuntimeException("Please select at least one product."); }
+
+            $db = pdo();
+            $lookup = $db->prepare("SELECT product_id, display_name, display_category, original_price, sell_quantity, stock_quantity, reserved_quantity, unit_of_measure, is_archived, expiration_date FROM products WHERE product_id = :id");
+            $draftItems = [];
+            $total = 0.0;
+            foreach ($selected as $productID => $quantity) {
+                $lookup->execute([":id" => $productID]);
+                $p = $lookup->fetch();
+                if (!$p || (int)$p["is_archived"] === 1 || $p["expiration_date"] < date("Y-m-d")) { throw new RuntimeException("A selected product is no longer available."); }
+                $price = (float)$p["original_price"];
+                $sellQuantity = (float)$p["sell_quantity"];
+                $available = (float)$p["stock_quantity"] - (float)$p["reserved_quantity"];
+                if ($sellQuantity <= 0 || $quantity * $sellQuantity > $available + 0.000001) { throw new RuntimeException("Not enough stock is available for " . $p["display_name"] . "."); }
+                $subtotal = $quantity * $price;
+                $total += $subtotal;
+                $draftItems[] = ["product_id" => $productID, "name" => $p["display_name"], "category" => $p["display_category"], "quantity" => $quantity, "unit_price" => $price, "subtotal" => $subtotal, "unit" => $p["unit_of_measure"]];
+            }
+            $draft = ["customer_name" => $customerName, "customer_phone" => $customerPhone, "items" => $draftItems, "total" => round($total, 2)];
+            $_SESSION["pending_new_order"] = $draft;
+            $showConfirmation = true;
+        } else {
+            throw new RuntimeException("Unknown order action.");
+        }
+    } catch (Throwable $e) {
+        if (isset($db) && $db instanceof PDO && $db->inTransaction()) { $db->rollBack(); }
+        error_log($e->getMessage());
+        $message = $e instanceof RuntimeException ? $e->getMessage() : "The order could not be processed. Please try again.";
+        $messageType = "error";
+        $draft = $_SESSION["pending_new_order"] ?? $draft;
+        $showConfirmation = false;
+    }
 }
 
-?>
+if (isset($_GET["created"]) && ctype_digit((string)$_GET["created"])) {
+    $createdID = (int)$_GET["created"];
+    $message = "Order #" . $createdID . " was successfully created.";
+    $messageType = "success";
+}
 
+$draftQuantities = [];
+if ($draft && isset($draft["items"])) { foreach ($draft["items"] as $item) { $draftQuantities[(int)$item["product_id"]] = (int)$item["quantity"]; } }
+$draftName = $draft["customer_name"] ?? "";
+$draftPhone = $draft["customer_phone"] ?? "";
+?>
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Yaad Goods - Make Order</title>
-
-    <link rel="icon" href="images/business-logo.png" type="image/png">
-    <link rel="stylesheet" href="master.css">
-
-    <style>
-        .order-container {
-            width: 100%;
-            max-width: 1100px;
-            margin: 0 auto;
-        }
-
-        .order-container h2 {
-            margin-bottom: 1rem;
-        }
-
-        .order-form-section {
-            background: white;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            border: 1px solid #ccc;
-        }
-
-        .order-form-section label {
-            display: block;
-            margin-bottom: 0.4rem;
-            font-weight: bold;
-        }
-
-        .order-form-section input {
-            width: 100%;
-            padding: 0.7rem;
-            margin-bottom: 1rem;
-            box-sizing: border-box;
-        }
-
-        .order-product-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-        }
-
-        .order-product-table th,
-        .order-product-table td {
-            border: 1px solid #ccc;
-            padding: 0.7rem;
-            text-align: left;
-        }
-
-        .order-product-table th {
-            background: #005C32;
-            color: white;
-        }
-
-        .order-quantity {
-            width: 85px;
-            padding: 0.4rem;
-        }
-
-        .order-total {
-            font-size: 1.4rem;
-            font-weight: bold;
-            text-align: right;
-            margin-top: 1.5rem;
-        }
-
-        .order-message {
-            padding: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .order-success {
-            background: #d8f3dc;
-            border: 1px solid #2d6a4f;
-            color: #1b4332;
-        }
-
-        .order-error {
-            background: #ffe0e0;
-            border: 1px solid #b00020;
-            color: #800000;
-        }
-
-        .order-success-dialog {
-            width: min(90%, 650px);
-            max-height: 85vh;
-            overflow-y: auto;
-            border: none;
-            border-radius: 10px;
-            padding: 1.5rem;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
-        }
-
-        .order-success-dialog::backdrop {
-            background: rgba(0, 0, 0, 0.6);
-        }
-
-        .order-success-dialog h2 {
-            margin-top: 0;
-            color: #176b35;
-        }
-
-        .order-summary-details {
-            display: grid;
-            grid-template-columns: max-content 1fr;
-            gap: 0.5rem 1rem;
-            margin: 1rem 0;
-        }
-
-        .order-summary-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 1rem 0;
-        }
-
-        .order-summary-table th,
-        .order-summary-table td {
-            border: 1px solid #ccc;
-            padding: 0.6rem;
-            text-align: left;
-        }
-
-        .order-summary-total {
-            text-align: right;
-            font-size: 1.2rem;
-            font-weight: bold;
-            margin: 1rem 0;
-        }
-
-        .order-success-dialog button {
-            padding: 0.7rem 1.5rem;
-            cursor: pointer;
-        }
-
-        .order-buttons {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-            margin-top: 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .order-buttons button,
-        .order-buttons a {
-            padding: 0.8rem 1.2rem;
-            cursor: pointer;
-        }
-
-        .order-back-link {
-            display: inline-block;
-            margin-bottom: 1rem;
-        }
-
-        @media (max-width: 700px) {
-
-            .order-product-table {
-                font-size: 0.85rem;
-            }
-
-            .order-product-table th,
-            .order-product-table td {
-                padding: 0.4rem;
-            }
-
-        }
-    </style>
-
-</head>
-
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yaad Goods - Make Order</title>
+<link rel="icon" href="images/business-logo.png" type="image/png"><link rel="stylesheet" href="master.css">
+<style>
+.order-container{width:100%;max-width:1100px;margin:0 auto}.order-form-section{background:#fff;padding:1.5rem;margin-bottom:1.5rem;border:1px solid #ccc}.order-form-section label{display:block;margin-bottom:.4rem;font-weight:bold}.order-form-section input{width:100%;padding:.7rem;margin-bottom:1rem;box-sizing:border-box}.order-product-table{width:100%;border-collapse:collapse;margin-top:1rem}.order-product-table th,.order-product-table td{border:1px solid #ccc;padding:.7rem;text-align:left}.order-product-table th{background:#005C32;color:#fff}.order-quantity{width:85px;padding:.4rem}.order-total{font-size:1.4rem;font-weight:bold;text-align:right;margin-top:1.5rem}.order-message{padding:1rem;margin-bottom:1rem}.order-success{background:#d8f3dc;border:1px solid #2d6a4f;color:#1b4332}.order-error{background:#ffe0e0;border:1px solid #b00020;color:#800000}.order-buttons{display:flex;gap:1rem;flex-wrap:wrap;margin:1.5rem 0}.order-buttons button,.order-buttons a{padding:.8rem 1.2rem;cursor:pointer}.confirmation-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:1rem;z-index:9999}.confirmation-box{background:#fff;color:#222;width:100%;max-width:650px;max-height:90vh;overflow:auto;padding:1.5rem;border-radius:8px;box-shadow:0 8px 30px rgba(0,0,0,.3)}.confirmation-box table{width:100%;border-collapse:collapse;margin:1rem 0}.confirmation-box th,.confirmation-box td{border:1px solid #ccc;padding:.55rem;text-align:left}.confirmation-actions{display:flex;gap:.75rem;justify-content:flex-end;margin-top:1.25rem}.confirmation-actions button{padding:.7rem 1.3rem;cursor:pointer}.confirm-button{background:#087443;color:white;border:0}.deny-button{background:#8b1e1e;color:white;border:0}@media(max-width:700px){.order-product-table{font-size:.85rem}.order-product-table th,.order-product-table td{padding:.4rem}}
+</style></head>
 <body>
-
-    <?php if ($createdOrder): ?>
-        <dialog id="order-success-dialog" class="order-success-dialog">
-            <h2>Order Successfully Created!</h2>
-            <p>Your order has been saved successfully. Here is the order summary.</p>
-
-            <div class="order-summary-details">
-                <strong>Order Number:</strong>
-                <span>#<?php echo (int)$createdOrder["order_id"]; ?></span>
-
-                <strong>Customer Name:</strong>
-                <span><?php echo escapeHTML($createdOrder["customer_name"]); ?></span>
-
-                <strong>Phone Number:</strong>
-                <span><?php echo escapeHTML($createdOrder["customer_phone"]); ?></span>
-
-                <strong>Order Date:</strong>
-                <span><?php echo escapeHTML($createdOrder["order_date"]); ?></span>
-            </div>
-
-            <h3>Order Details</h3>
-            <div style="overflow-x:auto;">
-                <table class="order-summary-table">
-                    <thead>
-                        <tr>
-                            <th>Product</th>
-                            <th>Quantity</th>
-                            <th>Unit Price (JMD)</th>
-                            <th>Subtotal (JMD)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($createdOrderItems as $item): ?>
-                            <tr>
-                                <td><?php echo escapeHTML($item["display_name"]); ?></td>
-                                <td><?php echo escapeHTML($item["quantity"]); ?></td>
-                                <td>$<?php echo number_format((float)$item["stored_unit_price"], 2); ?></td>
-                                <td>$<?php echo number_format((float)$item["subtotal"], 2); ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-
-            <p class="order-summary-total">
-                Total: J$<?php echo number_format((float)$createdOrder["total_cost"], 2); ?>
-            </p>
-
-            <button type="button" onclick="document.getElementById('order-success-dialog').close()">
-                Okay
-            </button>
-        </dialog>
-    <?php endif; ?>
-
-    <header>
-        <?php require "instance/navigation-bar.html"; ?>
-    </header>
-
-    <main class="admin">
-
-        <div class="order-container">
-            <h2>Make Order</h2>
-
-            <?php if ($message !== ""): ?>
-
-                <div class="order-message <?php
-                                            echo $messageType === "success"
-                                                ? "order-success"
-                                                : "order-error";
-                                            ?>">
-                    <?php echo escapeHTML($message); ?>
-                </div>
-
-            <?php endif; ?>
-
-
-            <form method="POST" action="form-add-order.php">
-
-                <input
-                    type="hidden"
-                    name="csrf_token"
-                    value="<?php echo escapeHTML($_SESSION["order_csrf_token"]); ?>">
-
-                <section class="order-form-section">
-
-                    <h2>Customer Information</h2>
-
-                    <label for="customer-name">
-                        Customer Name
-                    </label>
-
-                    <input
-                        type="text"
-                        id="customer-name"
-                        name="customer_name"
-                        maxlength="150"
-                        required
-                        placeholder="Enter customer name">
-
-                    <label for="customer-phone">
-                        Customer Phone Number
-                    </label>
-
-                    <input
-                        type="tel"
-                        id="customer-phone"
-                        name="customer_phone"
-                        maxlength="20"
-                        required
-                        placeholder="Enter customer phone number. eg. 876-123-1234"
-                        pattern="^\d{3}-\d{3}-\d{4}$">
-
-                </section>
-
-
-                <section class="order-form-section">
-
-                    <h2>Select Products</h2>
-
-                    <p>
-                        Enter the number of sale units required for each product.
-                        The available stock shown is the physical stock that has
-                        not already been reserved.
-                    </p>
-
-                    <?php if (count($products) > 0): ?>
-
-                        <table class="order-product-table">
-
-                            <thead>
-                                <tr>
-                                    <th>Product</th>
-                                    <th>Category</th>
-                                    <th>Price (JMD)</th>
-                                    <th>Quantity per Sale</th>
-                                    <th>Available Stock</th>
-                                    <th>Order Quantity</th>
-                                    <th>Subtotal (JMD)</th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-
-                                <?php foreach ($products as $product): ?>
-
-                                    <?php
-                                    $maximumSales = (int)floor(
-                                        ((float)$product["available_stock"] /
-                                            (float)$product["sell_quantity"]) + 0.0000001
-                                    );
-                                    ?>
-
-                                    <tr>
-
-                                        <td>
-                                            <?php echo escapeHTML($product["display_name"]); ?>
-                                        </td>
-
-                                        <td>
-                                            <?php echo escapeHTML($product["display_category"]); ?>
-                                        </td>
-
-                                        <td>
-                                            $<?php echo number_format(
-                                                    (float)$product["original_price"],
-                                                    2
-                                                ); ?>
-                                        </td>
-
-                                        <td>
-                                            <?php echo escapeHTML($product["sell_quantity"]); ?>
-                                            <?php echo escapeHTML($product["unit_of_measure"]); ?>
-                                        </td>
-
-                                        <td>
-                                            <?php echo escapeHTML($product["available_stock"]); ?>
-                                            <?php echo escapeHTML($product["unit_of_measure"]); ?>
-                                        </td>
-
-                                        <td>
-
-                                            <input
-                                                class="order-quantity"
-                                                type="number"
-                                                name="quantities[<?php echo (int)$product["product_id"]; ?>]"
-                                                min="0"
-                                                max="<?php echo $maximumSales; ?>"
-                                                step="1"
-                                                value="0"
-                                                data-price="<?php echo escapeHTML($product["original_price"]); ?>">
-
-                                        </td>
-
-                                        <td class="order-subtotal">
-                                            $0.00
-                                        </td>
-
-                                    </tr>
-
-                                <?php endforeach; ?>
-
-                            </tbody>
-
-                        </table>
-
-                    <?php else: ?>
-
-                        <p>
-                            No products are currently available to order.
-                        </p>
-
-                    <?php endif; ?>
-
-                    <div class="order-total">
-                        Total: J$<span id="order-total">0.00</span>
-                    </div>
-
-                </section>
-
-
-                <div class="order-buttons">
-
-                    <button
-                        type="submit"
-                        <?php echo count($products) === 0 ? "disabled" : ""; ?>>
-                        Create Order
-                    </button>
-
-                    <button
-                        type="reset"
-                        onclick="resetOrderTotal()">
-                        Clear Form
-                    </button>
-
-                    <button id="returnBtn" onclick="navigationReturn()">Return</button>
-
-                </div>
-
-            </form>
-
-        </div>
-
-    </main>
-
-    <?php require "instance/copyright.html"; ?>
-
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const successDialog = document.getElementById("order-success-dialog");
-
-            if (successDialog) {
-                successDialog.showModal();
-            }
-        });
-
-        function updateOrderTotal() {
-
-            let total = 0;
-
-            document.querySelectorAll(".order-quantity").forEach(input => {
-
-                const quantity = Number(input.value) || 0;
-                const price = Number(input.dataset.price) || 0;
-
-                const subtotal = quantity * price;
-
-                const row = input.closest("tr");
-
-                row.querySelector(".order-subtotal").textContent =
-                    "$" + subtotal.toFixed(2);
-
-                total += subtotal;
-
-            });
-
-            document.getElementById("order-total").textContent =
-                total.toFixed(2);
-        }
-
-
-        function resetOrderTotal() {
-
-            setTimeout(() => {
-                updateOrderTotal();
-            }, 0);
-
-        }
-
-
-        document.querySelectorAll(".order-quantity").forEach(input => {
-
-            input.addEventListener("input", updateOrderTotal);
-
-        });
-    </script>
-
-</body>
-
-</html>
+<header><?php require "instance/navigation-bar.html"; ?></header>
+<main class="admin"><div class="order-container"><h2>Make Order</h2>
+<?php if ($message !== ""): ?><div class="order-message <?php echo $messageType === "success" ? "order-success" : "order-error"; ?>"><?php echo addOrderEscape($message); ?></div><?php endif; ?>
+<form method="POST" action="form-add-order.php" id="make-order-form">
+<input type="hidden" name="csrf_token" value="<?php echo addOrderEscape($_SESSION["order_csrf_token"]); ?>"><input type="hidden" name="order_action" value="preview">
+<section class="order-form-section"><h2>Customer Information</h2>
+<label for="customer-name">Customer Name</label><input type="text" id="customer-name" name="customer_name" maxlength="150" required placeholder="Enter customer name" value="<?php echo addOrderEscape($draftName); ?>">
+<label for="customer-phone">Customer Phone Number</label><input type="tel" id="customer-phone" name="customer_phone" maxlength="20" required placeholder="Enter customer phone number" value="<?php echo addOrderEscape($draftPhone); ?>"></section>
+<section class="order-form-section"><h2>Select Products</h2><p>Enter the number of sale units required for each product. Available stock excludes existing reservations.</p>
+<?php if ($products): ?><div style="overflow-x:auto"><table class="order-product-table"><thead><tr><th>Product</th><th>Category</th><th>Price (JMD)</th><th>Quantity per Sale</th><th>Available Stock</th><th>Order Quantity</th><th>Subtotal (JMD)</th></tr></thead><tbody>
+<?php foreach ($products as $p): $max=(int)floor(((float)$p["available_stock"]/(float)$p["sell_quantity"])+0.0000001); $qty=$draftQuantities[(int)$p["product_id"]]??0; ?>
+<tr><td><?php echo addOrderEscape($p["display_name"]); ?></td><td><?php echo addOrderEscape($p["display_category"]); ?></td><td>J$<?php echo number_format((float)$p["original_price"],2); ?></td><td><?php echo addOrderEscape($p["sell_quantity"] . " " . $p["unit_of_measure"]); ?></td><td><?php echo addOrderEscape($p["available_stock"] . " " . $p["unit_of_measure"]); ?></td><td><input class="order-quantity" type="number" name="quantities[<?php echo (int)$p["product_id"]; ?>]" min="0" max="<?php echo $max; ?>" step="1" value="<?php echo $qty; ?>" data-price="<?php echo addOrderEscape($p["original_price"]); ?>"></td><td class="order-subtotal">J$<?php echo number_format($qty*(float)$p["original_price"],2); ?></td></tr>
+<?php endforeach; ?></tbody></table></div><?php else: ?><p>No products are currently available to order.</p><?php endif; ?>
+<div class="order-total">Total: J$<span id="order-total">0.00</span></div></section>
+<div class="order-buttons"><button type="submit" <?php echo !$products ? "disabled" : ""; ?>>Review Order</button><button type="reset" onclick="setTimeout(updateOrderTotal,0)">Clear Form</button><button type="button" onclick="navigationReturn()">Return</button></div></form>
+</div></main><?php require "instance/copyright.html"; ?>
+<?php if ($showConfirmation && $draft): ?>
+<div class="confirmation-overlay" role="dialog" aria-modal="true" aria-labelledby="confirm-title"><div class="confirmation-box"><h2 id="confirm-title">Confirm New Order</h2><p>Please review the order details. The order will not be created until you select <strong>Confirm Order</strong>.</p><p><strong>Customer:</strong> <?php echo addOrderEscape($draft["customer_name"]); ?><br><strong>Phone:</strong> <?php echo addOrderEscape($draft["customer_phone"]); ?></p><table><thead><tr><th>Product</th><th>Quantity</th><th>Unit Price</th><th>Subtotal</th></tr></thead><tbody><?php foreach ($draft["items"] as $item): ?><tr><td><?php echo addOrderEscape($item["name"]); ?></td><td><?php echo (int)$item["quantity"]; ?></td><td>J$<?php echo number_format((float)$item["unit_price"],2); ?></td><td>J$<?php echo number_format((float)$item["subtotal"],2); ?></td></tr><?php endforeach; ?></tbody></table><h3 style="text-align:right">Total: J$<?php echo number_format((float)$draft["total"],2); ?></h3>
+<form method="POST" action="form-add-order.php" class="confirmation-actions"><input type="hidden" name="csrf_token" value="<?php echo addOrderEscape($_SESSION["order_csrf_token"]); ?>"><button class="deny-button" type="submit" name="order_action" value="deny">Deny / Edit Order</button><button class="confirm-button" type="submit" name="order_action" value="confirm">Confirm Order</button></form></div></div>
+<?php endif; ?>
+<script>
+function updateOrderTotal(){let total=0;document.querySelectorAll('.order-quantity').forEach(input=>{const qty=Number(input.value)||0;const price=Number(input.dataset.price)||0;const subtotal=qty*price;input.closest('tr').querySelector('.order-subtotal').textContent='J$'+subtotal.toFixed(2);total+=subtotal;});const el=document.getElementById('order-total');if(el)el.textContent=total.toFixed(2);}
+document.querySelectorAll('.order-quantity').forEach(input=>input.addEventListener('input',updateOrderTotal));updateOrderTotal();
+</script></body></html>
