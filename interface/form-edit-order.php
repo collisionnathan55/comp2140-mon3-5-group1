@@ -217,7 +217,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["order_action"])) {
             createAction_editOrder($orderID, $draft["customer_name"]);
 
             unset($_SESSION["pending_edit_orders"][$orderID]);
-            header("Location: form-edit-order.php?val=" . $orderID . "&updated=1");
+            //header("Location: form-edit-order.php?val=" . $orderID . "&updated=1");
+            header("Location: page-orders-admin.php");
             exit();
         } else {
             throw new RuntimeException("Unknown order action.");
