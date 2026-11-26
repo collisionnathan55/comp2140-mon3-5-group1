@@ -21,6 +21,8 @@
                 display: flex;
                 flex-direction: row;
 
+                overflow-x: scroll;
+
                 flex-grow: 1;
             }
 
@@ -99,14 +101,23 @@
                 flex-grow: 1;
             }
 
-            @media (max-width: 405px) {
+            @media (max-width: 430px) {
+                #admin-product-preview {
+                    width: auto;
+                }
+                
+                #admin-product-sorting, #admin-product-sorting-asc {
+                    height: auto;
+                }
+
+                #admin-product-preview > div > div {
+                    flex-wrap: wrap;
+                }
+
                 #admin-product-preview > div {
                     flex-direction: column-reverse;
                     align-items: start;
-                }
-                #admin-product-preview input {
-                    flex-grow: 0;
-                    width: 100%;
+                    gap: 1vmax;
                 }
             }
         </style>

@@ -22,6 +22,7 @@
                 flex-direction: row;
 
                 flex-grow: 1;
+                overflow-x: scroll;
             }
 
             #admin-order-controls {
@@ -80,7 +81,6 @@
                 border-width: 0.01em;
             }
             #admin-order-sorting, #admin-order-sorting-asc {
-                
                 height: 100%;
             }
             #admin-order-preview #admin-order-details {
@@ -89,6 +89,20 @@
             }
             #admin-order-preview input {
                 flex-grow: 1;
+            }
+
+            @media (max-width: 430px) {
+                #admin-order-preview {
+                    width: auto;
+                }
+
+                #admin-order-preview > div {
+                    flex-wrap: wrap;
+                }
+                
+                #admin-order-sorting, #admin-order-sorting-asc {
+                    height: auto;
+                }
             }
         </style>
 

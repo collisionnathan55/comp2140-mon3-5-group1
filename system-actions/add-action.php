@@ -8,8 +8,8 @@ function createAction_addProduct(array $packedProduct) {
     try {
         $action = "ADD";
         $category = "PRODUCT";
-        $desription = "Created new product %s under %s to be sold at $%.2f for %.2f %s(s). Expiration:%s.";
-        $desription = sprintf($desription, $packedProduct["product-name"], $packedProduct["product-category"], $packedProduct["product-price"], $packedProduct["product-quantity"], $packedProduct["product-unit"], $packedProduct["product-freshness"]);
+        $desription = "Created new product %s (%s) to be sold at $%.2f for %.2f. Expiration:%s.";
+        $desription = sprintf($desription, $packedProduct["product-name"], $packedProduct["product-category"], $packedProduct["product-price"], $packedProduct["product-quantity"], $packedProduct["product-freshness"]);
 
         db_add_action($action, $category, $desription);
     }

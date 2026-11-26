@@ -52,6 +52,9 @@
                 flex-direction: row;
                 justify-content: space-between;
 
+                flex-wrap: wrap;
+                gap: 1vmax;
+
                 border-style: solid;
                 border-width: 0.2em 0em 0em 0em;
                 border-color: #DBDBDB;
@@ -68,6 +71,7 @@
                 display: flex;
                 flex-direction: row;
                 gap: 1vmax;
+                flex-wrap: wrap;
             }
 
             #product-display-area {
@@ -115,6 +119,12 @@
                 margin-top: 1vmax;
                 font-size: small;
                 align-self: end;
+            }
+
+            @media (max-width: 430px) {
+                #product-display-area {
+                    justify-content: center;
+                }
             }
         </style>
 

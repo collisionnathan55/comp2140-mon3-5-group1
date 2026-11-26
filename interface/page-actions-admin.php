@@ -21,6 +21,8 @@
                 display: flex;
                 flex-direction: row;
 
+                overflow-x: scroll;
+
                 flex-grow: 1;
             }
 
@@ -91,6 +93,16 @@
             #admin-action-preview #admin-action-details {
                 padding-left: 2em;
                 padding-right: 2em;
+            }
+
+            @media (max-width: 430px) {
+                #admin-action-preview {
+                    width: auto;
+                }
+                
+                #admin-action-sorting, #admin-action-sorting-asc {
+                    height: auto;
+                }
             }
         </style>
 
