@@ -130,8 +130,13 @@
                     .done(function(response) {
                         var json = jQuery.parseJSON(response);
                         var products = json.dataList;
+                        var displayedProducts = filterAndSort(products);
 
-                        jQuery(".admin-preview-table").html(createTableFromArrays(filterAndSort(products), tableQueryColumns, tableDisplayColumns));
+                        jQuery(".admin-preview-table").html(createTableFromArrays(displayedProducts, tableQueryColumns, tableDisplayColumns));
+
+                        if (displayedProducts.length == 0) {
+                            jQuery(".admin-preview-table").html("No products available or none match the filter.");
+                        }
                     })
                     .fail(function(response) { console.log("Issue getting products");
                      });
@@ -260,6 +265,11 @@
             function confirmRemovalSubmission() {
                 jQuery.ajax("../authentication/action-authorization.php?attempt=confirm-product-removal")
                     .done(function(response) {
+                        var json = jQuery.parseJSON(response);
+                        if (json.alert != null) {
+                            alert(json.alert);
+                        }
+
                         jQuery(".admin-preview-table input").prop("checked", false);
                         populatePreviewTable();
                     })

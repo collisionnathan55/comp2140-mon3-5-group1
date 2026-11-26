@@ -34,8 +34,6 @@ function authorizePage(string $pageName) {
         "page-products-admin.php",
         "page-orders-admin.php",
         "page-actions-admin.php",
-
-        "page-order-details.php"
     ];
 
     if (in_array($pageName, $validLastPages)) {
@@ -232,11 +230,13 @@ switch ($attempt) {
                 foreach ($query["ids"] as $id) {
                     toggleArchiveProduct($id, $query["set"] == "true");
                 }
+                $response["alert"] = "Products successfully " . ($query["set"] == "true" ? "archived" : "unarchived") . ".";
             break;
             case "delete-products":
                 foreach ($query["ids"] as $id) {
                     deleteProduct((int) $id);
                 }
+                $response["alert"] = "Products successfully removed.";
             break;
         }
 
@@ -337,9 +337,11 @@ switch ($attempt) {
         switch ($query["attempt"]) {
             case "cancel-order":
                 cancelOrder($query["id"]);
+                $response["alert"] = "Successfully cancelled order.";
             break;
             case "complete-order":
                 completeOrder($query["id"]);
+                $response["alert"] = "Successfully completed order.";
             break;
         }
 

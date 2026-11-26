@@ -111,8 +111,13 @@
                     .done(function(response) {
                         var json = jQuery.parseJSON(response);
                         var orders = json.dataList;
+                        var displayedOrders = filterAndSort(orders);
 
-                        jQuery(".admin-preview-table").html(createTableFromArrays(filterAndSort(orders), tableQueryColumns, tableDisplayColumns));
+                        jQuery(".admin-preview-table").html(createTableFromArrays(displayedOrders, tableQueryColumns, tableDisplayColumns));
+
+                        if (displayedOrders.length == 0) {
+                            jQuery(".admin-preview-table").html("No orders available or none match the filter.");
+                        }
                     })
                     .fail(function(response) { console.log("Issue getting orders");
                      });
@@ -224,6 +229,11 @@
             function confirmRemovalSubmission() {
                 jQuery.ajax("../authentication/action-authorization.php?attempt=confirm-order-removal")
                     .done(function(response) {
+                        var json = jQuery.parseJSON(response);
+                        if (json.alert != null) {
+                            alert(json.alert);
+                        }
+
                         jQuery(".admin-preview-table input").prop("checked", false);
                         populatePreviewTable();
                     })

@@ -113,9 +113,14 @@
                     .done(function(response) {
                         var json = jQuery.parseJSON(response);
                         var actions = json.dataList;
+                        var displayedActions = filterAndSort(actions);
 
-                        jQuery(".admin-preview-table").html(createTableFromArrays(filterAndSort(actions), tableQueryColumns, tableDisplayColumns));
+                        jQuery(".admin-preview-table").html(createTableFromArrays(displayedActions, tableQueryColumns, tableDisplayColumns));
                         jQuery(".admin-preview-table-check").hide();
+
+                        if (displayedActions.length == 0) {
+                            jQuery(".admin-preview-table").html("No action logs available or none match the filter.");
+                        }
                     })
                     .fail(function(response) { console.log("Issue getting actions");
                      });

@@ -2,6 +2,11 @@
 
 <?php
 
+/*
+    This file stores SQL presets to be called by the modules
+    of the logic layer above.
+*/
+
 // Queries
 
 function db_query_product_id(int $id) {

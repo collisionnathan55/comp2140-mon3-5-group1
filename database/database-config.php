@@ -1,5 +1,9 @@
-
 <?php
+
+/**
+ * This file generally reads the .env config for sql users etc
+ * It is generally called by other sql focused files
+ */
 
 function pdo()
 {
